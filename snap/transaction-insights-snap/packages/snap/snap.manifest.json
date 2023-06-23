@@ -1,0 +1,31 @@
+{
+  "version": "0.1.0",
+  "description": "Merchant reputation and transaction insights",
+  "proposedName": "Merchant Reputation",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MetaMask/template-snap-monorepo.git"
+  },
+  "source": {
+    "shasum": "2Cr6C3UlxvDrGhI4xOILbta6SrJEZea//+iOP9Blj50=",
+    "location": {
+      "npm": {
+        "filePath": "dist/bundle.js",
+        "iconPath": "images/icon.svg",
+        "packageName": "snap",
+        "registry": "https://registry.npmjs.org/"
+      }
+    }
+  },
+  "initialPermissions": {
+    "snap_dialog": {},
+    "endowment:rpc": {
+      "dapps": true,
+      "snaps": false
+    },
+    "endowment:transaction-insight": {},
+    "endowment:ethereum-provider": {},
+    "endowment:network-access": {}
+  },
+  "manifestVersion": "0.1"
+}
