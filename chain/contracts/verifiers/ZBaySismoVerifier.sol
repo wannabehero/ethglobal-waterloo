@@ -20,9 +20,12 @@ contract ZBaySismoVerifier is IZBayVerifier, SismoConnect {
         SismoConnectVerifiedResult memory result = verify({
             auth: buildAuth({authType: AuthType.VAULT}),
             responseBytes: proof,
-
-            // TODO: better claim
-            claim: buildClaim({groupId: 0x1cde61966decb8600dfd0749bd371f12})
+            claim: buildClaim({
+                // gitcoin passport
+                groupId: 0x1cde61966decb8600dfd0749bd371f12,
+                claimType: ClaimType.GTE,
+                value: 15
+            })
         });
 
         if (result.claims.length == 0) {
