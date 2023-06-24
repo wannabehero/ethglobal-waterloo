@@ -15,7 +15,7 @@ const client = new ApolloClient({
 @Injectable()
 export class ReputationService {
 
-    async getReputation(walletAddress: string): Promise<string> {
+    async getReputation(walletAddress: string): Promise<number> {
         console.log(`in reputation service: ${walletAddress}`);
 
         const firstTransactionDate = await this.getDateOfFirstTransaction(walletAddress);
@@ -36,10 +36,12 @@ export class ReputationService {
         const reputationPOAPs = poapsLength * 10;
         const reputationTransactions = numberOfTransactions * 0.1;
         const reputationSocial = numberOfSocialProfiles * 10;
-        const reputation = Math.round(reputationAge + reputationPOAPs + reputationTransactions);
+        console.log(reputationAge + reputationPOAPs + reputationTransactions + reputationSocial);
+        const reputation = 1 + (1 - (Math.round(reputationAge + reputationPOAPs + reputationTransactions + reputationSocial))/100)
+
         console.log(reputation);
 
-        return String(reputation);
+        return reputation;
     }
 
     async getCountOfTransactions(walletAddress: string): Promise<number> {
