@@ -11,10 +11,23 @@ export class ProductController {
     return this.svc.getProductsByMerchant(merchantId);
   }
 
-  
+
   @Get('getAllProducts')
   async getAllProducts(): Promise<string> {
     console.log(`in get all products list controller:`);
     return this.svc.getAllProducts();
+  }
+
+  @Get('getProductsByBuyer')
+  async getProductsByBuyer(@Query('buyerId') buyerId: string): Promise<string> {
+    console.log(`in get products list by buyerId controller: ${buyerId}`);
+    return this.svc.getProductsByBuyer(buyerId);
+  }
+
+  
+  @Get('getAllProductsBought')
+  async getAllProductsBought(): Promise<string> {
+    console.log(`in get all products list controller:`);
+    return this.svc.getAllProductsBought();
   }
 }
