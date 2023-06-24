@@ -3,17 +3,17 @@ import useProducts from '../hooks/useProducts';
 import { useAccount, useChainId, usePublicClient } from 'wagmi';
 import ProductCard from '../components/ProductCard';
 import { ZBayProduct, ZBayProductState } from '../types/product';
-import { useCallback, useState } from 'react';
-import { formatEther } from 'viem';
+import { useCallback, useEffect, useState } from 'react';
+import { encodeAbiParameters, formatEther } from 'viem';
 import { useZBayConfirmDelivery, useZBayPurchase } from '../web3/contracts';
 import { ZBAY_DEPLOMENTS } from '../web3/consts';
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit';
 import DispatchModal, { DispatchData } from '../components/DispatchModal';
-import { proveAttestation } from '../api/client';
+import { fetchReputationCoef, proveAttestation } from '../api/client';
 
 const Buyer = () => {
   const { address } = useAccount();
-  const { products } = useProducts({ buyer: address });
+  const { products, refreshProducts } = useProducts({ buyer: address });
   const [buyingProduct, setBuyingProduct] = useState<ZBayProduct>();
   const chainId = useChainId();
   const addRecentTransaction = useAddRecentTransaction();
@@ -21,6 +21,7 @@ const Buyer = () => {
   const [isConfirming, setIsConfirming] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [confirmingProduct, setConfirmingProduct] = useState<ZBayProduct>();
+  const [reputationCoef, setReputationCoef] = useState<number>(1.5);
 
   const { writeAsync: purchaseProduct } = useZBayPurchase({
     address: ZBAY_DEPLOMENTS[chainId],
@@ -42,19 +43,20 @@ const Buyer = () => {
 
     try {
       const tx = await purchaseProduct({
-        args: [product.id],
+        args: [product.id, encodeAbiParameters([{ type: 'uint256' }], [BigInt(Math.floor(reputationCoef * 100))])],
       });
       addRecentTransaction({
         hash: tx.hash,
         description: 'Purchasing product'
       });
       await publicClient.waitForTransactionReceipt(tx);
+      await refreshProducts();
     } catch (e) {
       console.error(e);
     }
 
     setBuyingProduct(undefined);
-  }, [purchaseProduct, addRecentTransaction, publicClient, setBuyingProduct]);
+  }, [purchaseProduct, addRecentTransaction, publicClient, setBuyingProduct, refreshProducts, reputationCoef]);
 
   const handleConfirmDelivery = useCallback(async (data: DispatchData) => {
     console.log('Confirming delivery of', data.product.id);
@@ -75,6 +77,7 @@ const Buyer = () => {
         description: 'Confirming delivery'
       });
       await publicClient.waitForTransactionReceipt(tx);
+      await refreshProducts();
     } catch (e) {
       console.error(e);
       return false;
@@ -83,7 +86,15 @@ const Buyer = () => {
     }
 
     return true;
-  }, [addRecentTransaction, confirmDelivery, publicClient, setIsConfirming]);
+  }, [addRecentTransaction, confirmDelivery, publicClient, setIsConfirming, refreshProducts]);
+
+  useEffect(() => {
+    if (!address) {
+      return;
+    }
+    fetchReputationCoef(address)
+      .then((coef) => setReputationCoef(coef));
+  }, [address]);
 
   return (
     <>
@@ -130,6 +141,8 @@ const Buyer = () => {
               break;
           }
 
+          const lockedValue = product.price * (BigInt(Math.floor(reputationCoef * 100)) - 100n) / 100n;
+
           return (
             <ProductCard
               key={`product-${address}-${product.id}`}
@@ -138,6 +151,7 @@ const Buyer = () => {
               actionTitle={actionTitle}
               onAction={onAction}
               status={status}
+              caption={`Also ${formatEther(lockedValue)} will be locked (${reputationCoef}x)`}
             />
            );
           }

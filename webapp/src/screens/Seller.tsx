@@ -4,7 +4,7 @@ import { useAccount, useChainId, usePublicClient, useWalletClient } from 'wagmi'
 import ProductCard from '../components/ProductCard';
 import CreateProductModal from '../components/CreateProductModal';
 import { useCallback, useState } from 'react';
-import { ZBayProduct, ZBayProductMetadata, ZBayProductState } from '../types/product';
+import { ZBayProduct, ZBayProductMetadata, ZBayProductState, ZBayProductWithMetadata } from '../types/product';
 import { store } from '../web3/storage';
 import { useZBayCreateProduct, useZBayDispatch } from '../web3/contracts';
 import { ZBAY_DEPLOMENTS } from '../web3/consts';
@@ -15,7 +15,7 @@ import { generateAttestation } from '../api/client';
 
 const Seller = () => {
   const { address } = useAccount();
-  const { products } = useProducts({ seller: address });
+  const { products, refreshProducts } = useProducts({ seller: address });
   const [isCreateModelOpen, setIsCreateModelOpen] = useState(false);
   const [isDispatchModelOpen, setIsDispatchModelOpen] = useState(false);
   const [dispatchingProduct, setDispatchingProduct] = useState<ZBayProduct>();
@@ -65,6 +65,7 @@ const Seller = () => {
         description: 'Creating product'
       });
       await publicClient.waitForTransactionReceipt(tx);
+      await refreshProducts();
     } catch (e) {
       console.error(e);
       return false;
@@ -74,7 +75,7 @@ const Seller = () => {
 
     setIsCreateModelOpen(false);
     return true;
-  }, [createProduct, addRecentTransaction, setIsCreating, setIsCreateModelOpen, publicClient, walletClient]);
+  }, [createProduct, addRecentTransaction, setIsCreating, setIsCreateModelOpen, publicClient, walletClient, refreshProducts]);
 
   const handleDispatch = useCallback(async (data: DispatchData) => {
     if (!walletClient) {
@@ -98,6 +99,7 @@ const Seller = () => {
         description: 'Dispatching product'
       });
       await publicClient.waitForTransactionReceipt(tx);
+      await refreshProducts();
     } catch (e) {
       console.error(e);
       return false;
@@ -106,7 +108,7 @@ const Seller = () => {
     }
 
     return true;
-  }, [addRecentTransaction, dispatchProduct, publicClient, walletClient]);
+  }, [addRecentTransaction, dispatchProduct, publicClient, walletClient, refreshProducts]);
 
   return (
     <VStack spacing="4" align="stretch">
@@ -120,7 +122,7 @@ const Seller = () => {
         </Button>
       </HStack>
       <VStack spacing="4" align="stretch">
-        {products.map((product) => {
+        {products.map((product: ZBayProductWithMetadata) => {
           let status: string | undefined = undefined;
           let actionTitle: string | undefined = undefined;
           let onAction: ((product: ZBayProduct) => void) | undefined = undefined;

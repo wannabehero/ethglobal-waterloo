@@ -23,8 +23,9 @@ async function main() {
   const trueVerifier = await ethers.getContractAt("MockVerifier", "0xA187567a4A87626a7DF9F5B3c389c2346Fc1D359");
   console.log("TrueVerifier deployed to:", trueVerifier.address);
 
-  const ZBayAttestationVerifier = await ethers.getContractFactory("ZBayAttestationVerifier");
-  const zbayAttestationVerifier = await ZBayAttestationVerifier.deploy();
+  // const ZBayAttestationVerifier = await ethers.getContractFactory("ZBayAttestationVerifier");
+  // const zbayAttestationVerifier = await ZBayAttestationVerifier.deploy();
+  const zbayAttestationVerifier = await ethers.getContractAt("ZBayAttestationVerifier", "0x81B724d8bb2e343eb37478aE8A9f1b002f8A0aFd");
   console.log("ZBayAttestationVerifier deployed to:", zbayAttestationVerifier.address);
 
   await zbay.updateVerifiers(
@@ -37,7 +38,7 @@ async function main() {
 }
 
 async function verification() {
-  const zbay = await ethers.getContractAt("ZBay", "0xca3524aD7e6aEf4f6ca094C78672D13f0d5EA60a");
+  const zbay = await ethers.getContractAt("ZBay", "0x93387F4cc9EC76233272D2a38Cc77a0B729925a6");
   await zbay
     .submitVerification(1, ethers.utils.toUtf8Bytes("proof"), []);
 }

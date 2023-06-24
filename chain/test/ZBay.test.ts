@@ -85,14 +85,14 @@ describe("zBay", function () {
       await token.connect(buyer)
         .approve(zbay.address, ethers.utils.parseEther("150"));
 
-      await zbay.connect(buyer).purchase(0);
+      await zbay.connect(buyer).purchase(0, ethers.utils.defaultAbiCoder.encode(["uint256"], [137]));
 
       product = await zbay.getProduct(0);
       expect(product.state).to.be.equal(1);
 
       // check updated balances
-      expect(await token.balanceOf(zbay.address)).to.be.equal(ethers.utils.parseEther("150"));
-      expect(await token.balanceOf(buyer.address)).to.be.equal(ethers.utils.parseEther("850"));
+      expect(await token.balanceOf(zbay.address)).to.be.equal(ethers.utils.parseEther("137"));
+      expect(await token.balanceOf(buyer.address)).to.be.equal(ethers.utils.parseEther("863"));
 
       // dispatch
       await zbay.connect(seller).dispatch(0, 123);

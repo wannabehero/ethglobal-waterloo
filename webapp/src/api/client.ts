@@ -72,3 +72,12 @@ export async function fetchProducts(): Promise<ProductInfo[]> {
     timestamp: Number(item.timestamp),
   }));
 }
+
+export async function fetchReputationCoef(walletAddress: Address): Promise<number> {
+  const query = new URLSearchParams({
+    walletAddress,
+  })
+  const { coef } = await fetch(`${BASE_URL}/reputation/getReputation?${query.toString()}`)
+    .then((res) => res.json());
+  return coef ?? 1.5;
+}
