@@ -12,8 +12,9 @@ const client = new ApolloClient({
 
 interface Product {
     id: string;
-    name: string;
+    cid: string; 
     price: number;
+    seller: string;
     timestamp: Date;
 }
 
@@ -26,24 +27,44 @@ export class ProductService {
         return JSON.stringify(products);
     }
 
+    async getAllProducts(): Promise<string> {
+        const products = this.getProducts(null);
+
+        return JSON.stringify(products);
+    }
+
     async getProducts(merchantId: string): Promise<Array<Product>> {
-        const query = gql`{
+        let query = gql`{
             productCreateds {
+                id
+                cid
                 price
-              id
-              ZBay_id
-              transactionHash
-              blockTimestamp
+                seller
+                blockTimestamp
             }
             }`;
+
+        if (merchantId != null)  {
+            query = gql`{
+                productCreateds (where: {seller: "${merchantId}"}) {
+                    id
+                    cid
+                    price
+                    seller
+                    blockTimestamp
+                }
+                }`;
+        }
+
 
         const response = await client.query({query});
         console.log(response)
         const products = response.data.productCreateds.map((product) => {
             return {
                 id: product.id,
-                name: product.ZBay_id,
+                cid: product.cid,
                 price: product.price,
+                seller: product.seller,
                 timestamp: new Date(product.blockTimestamp * 1000),
             }
         });
