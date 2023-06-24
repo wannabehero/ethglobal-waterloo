@@ -23,8 +23,10 @@
     "@nestjs/common": "^9.0.0",
     "@nestjs/core": "^9.0.0",
     "@nestjs/platform-express": "^9.0.0",
+    "circomlibjs": "^0.1.7",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.2.0"
+    "rxjs": "^7.2.0",
+    "snarkjs": "^0.6.11"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",

@@ -66,14 +66,14 @@ contract ZBay is ERC2771Context, Ownable {
     }
 
     /// @dev verify
-    function submitVerification(uint256 verifierId, bytes calldata proof) external {
+    function submitVerification(uint256 verifierId, bytes calldata proof, uint256[] calldata signals) external {
         address verifierAddress = _verifiers[verifierId];
         require(verifierAddress != address(0), "Verifier not found");
 
         IZBayVerifier verifier = IZBayVerifier(verifierAddress);
         uint32 score = _verifierScores[verifierAddress];
 
-        if (verifier.verify(proof)) {
+        if (verifier.verify(proof, signals)) {
             _verificationScore[_msgSender()] += score;
         }
     }
@@ -89,7 +89,7 @@ contract ZBay is ERC2771Context, Ownable {
             seller: _msgSender(),
             buyer: address(0),
             state: ZBayProductState.Created,
-            attestation: "",
+            attestation: 0,
             assertionId: bytes32(0)
         });
 
@@ -133,7 +133,7 @@ contract ZBay is ERC2771Context, Ownable {
     }
 
     /// @dev dispatch a product
-    function dispatch(uint256 id, bytes calldata attestation) external {
+    function dispatch(uint256 id, uint256 attestation) external {
         ZBayProduct storage product = _products[id];
 
         require(product.seller == _msgSender(), "Only seller can dispatch");
@@ -178,7 +178,10 @@ contract ZBay is ERC2771Context, Ownable {
         require(product.state == ZBayProductState.Dispatched, "Invalid state");
 
         // 0 is reserved for the attestation verifier
-        bool verified = IZBayVerifier(_verifiers[0]).verify(proof);
+        uint256[] memory signals = new uint256[](2);
+        signals[0] = product.attestation;
+        signals[1] = uint160(_msgSender());
+        bool verified = IZBayVerifier(_verifiers[0]).verify(proof, signals);
         require(verified, "Invalid proof");
 
         _confirmDelivery(product);

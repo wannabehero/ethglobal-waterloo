@@ -16,7 +16,7 @@ contract ZBaySismoVerifier is IZBayVerifier, SismoConnect {
         SismoConnect(appId_)
     {}
 
-    function verify(bytes calldata proof) external returns (bool) {
+    function verify(bytes calldata proof, uint256[] calldata) external returns (bool) {
         SismoConnectVerifiedResult memory result = verify({
             auth: buildAuth({authType: AuthType.VAULT}),
             responseBytes: proof,

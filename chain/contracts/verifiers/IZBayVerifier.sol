@@ -2,5 +2,5 @@
 pragma solidity ^0.8.17;
 
 interface IZBayVerifier {
-    function verify(bytes calldata proof) external returns (bool);
+    function verify(bytes calldata proof, uint256[] calldata signals) external returns (bool);
 }
