@@ -94,7 +94,8 @@ contract ZBay is ERC2771Context, Ownable {
             buyer: address(0),
             state: ZBayProductState.Created,
             attestation: 0,
-            assertionId: bytes32(0)
+            assertionId: bytes32(0),
+            coef: 0
         });
 
         emit ProductCreated(_counter, _msgSender(), price, cid);
@@ -103,10 +104,16 @@ contract ZBay is ERC2771Context, Ownable {
     }
 
     /// @dev purchase a product
-    function purchase(uint256 id) external {
+    function purchase(uint256 id, bytes calldata securityCoefProof) external {
         ZBayProduct storage product = _products[id];
 
-        uint256 amountToLock = product.price * DEFAULT_SECURITY_MULTIPLIER / 100;
+        uint256 securityMultiplier = DEFAULT_SECURITY_MULTIPLIER;
+        if (securityCoefProof.length > 0) {
+            // TODO: more elaborate verification
+            securityMultiplier = abi.decode(securityCoefProof, (uint256));
+        }
+
+        uint256 amountToLock = product.price * securityMultiplier / 100;
 
         require(product.seller != _msgSender(), "Cannot buy your own product");
         require(product.state == ZBayProductState.Created, "Invalid state");
@@ -116,6 +123,7 @@ contract ZBay is ERC2771Context, Ownable {
 
         product.state = ZBayProductState.Paid;
         product.buyer = _msgSender();
+        product.coef = securityMultiplier;
 
         emit ProductPurchased(id, _msgSender());
     }
@@ -129,7 +137,7 @@ contract ZBay is ERC2771Context, Ownable {
         product.state = ZBayProductState.Cancelled;
 
         if (product.state == ZBayProductState.Paid) {
-            uint256 amountToUnlock = product.price * DEFAULT_SECURITY_MULTIPLIER / 100;
+            uint256 amountToUnlock = product.price * product.coef / 100;
             _token.transfer(product.buyer, amountToUnlock);
         }
 
@@ -217,7 +225,7 @@ contract ZBay is ERC2771Context, Ownable {
             emit ProductResolved(productId, true);
         } else {
             product.state = ZBayProductState.Cancelled;
-            uint256 amountToUnLock = product.price * DEFAULT_SECURITY_MULTIPLIER / 100;
+            uint256 amountToUnLock = product.price * product.coef / 100;
             _token.transfer(product.buyer, amountToUnLock);
             emit ProductResolved(productId, false);
         }
@@ -226,7 +234,7 @@ contract ZBay is ERC2771Context, Ownable {
     function _confirmDelivery(ZBayProduct storage product) internal {
         product.state = ZBayProductState.Delivered;
 
-        uint256 amountToRelease = product.price * DEFAULT_SECURITY_MULTIPLIER / 100 - product.price;
+        uint256 amountToRelease = product.price * product.coef / 100 - product.price;
         uint256 amountToTreasury = product.price * DEFAULT_TREASURY_PERCENT / 10000; // will be left at the contract
         uint256 amountToSeller = product.price - amountToTreasury;
 

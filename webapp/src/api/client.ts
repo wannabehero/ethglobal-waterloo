@@ -54,6 +54,29 @@ export async function proveAttestation(
   }));
 }
 
+export async function proveReputation(
+  account: string,
+): Promise<{ proof: Address, args: bigint[] }> {
+  const response = await fetch(`${BASE_URL}/zk/prove-reputation`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      account
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to generate attestation');
+  }
+
+  return response.json().then((res) => ({
+    proof: res.proof,
+    args: res.args.map((arg: string) => BigInt(arg)),
+  }));
+}
+
 export async function getEbayItemData(itemUrl: string): Promise<EbayItemData> {
   const query = new URLSearchParams({ itemUrl });
   const response: EbayItemResponse = await fetch(`${BASE_URL}/ebay/getEbayItem?${query.toString()}`)
@@ -71,4 +94,13 @@ export async function fetchProducts(): Promise<ProductInfo[]> {
     price: BigInt(item.price),
     timestamp: Number(item.timestamp),
   }));
+}
+
+export async function fetchReputationCoef(walletAddress: Address): Promise<number> {
+  const query = new URLSearchParams({
+    walletAddress,
+  })
+  const { coef } = await fetch(`${BASE_URL}/reputation/getReputation?${query.toString()}`)
+    .then((res) => res.json());
+  return coef ?? 1.5;
 }

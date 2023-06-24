@@ -73,7 +73,7 @@ export class ProductService {
     if (merchantId != null) {
       query = gql`{
                 productCreateds (where: {seller: "${merchantId}"}) {
-                    ZBay_id
+                  ZBay_id
                     cid
                     price
                     seller
@@ -82,7 +82,7 @@ export class ProductService {
                 }`;
     }
 
-    const response = await client.query({ query });
+    const response = await client.query({ query, fetchPolicy: 'no-cache' });
     const products = response.data.productCreateds.map((product) => {
       return {
         id: product.ZBay_id,

@@ -21,4 +21,5 @@ struct ZBayProduct {
     uint256 attestation;
     bytes32 assertionId;
     bytes cid;
+    uint256 coef;
 }

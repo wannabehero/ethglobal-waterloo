@@ -36,7 +36,9 @@ export class EbayService implements OnModuleDestroy {
     return response.json();
   }
 
-  async getEbayMerchantData(merchantUrl: string) {
+  async getEbayMerchantData(merchantId: string) {
+    const merchantUrl = `https://www.ebay.com/usr/${merchantId}`;
+
     const page = await this.browser.newPage();
     await page.setDefaultNavigationTimeout(60000);
     await page.goto(merchantUrl);
@@ -61,9 +63,9 @@ export class EbayService implements OnModuleDestroy {
     console.log(merchantDataRaw);
     console.log(memberSinceRaw);
 
-    const match1 = merchantDataRaw.match(/(\d+%)(?:.*)feedback(.*)\sItems/);
-    const positiveFeedback = match1 ? match1[1] : '0%';
-    const itemsSold = match1 ? match1[2] : '0';
+    const match1 = merchantDataRaw.match(/(\d+%)(?:.*)feedback\s\(\d+\)\s?(.*)\sItems/);
+    const positiveFeedback = parseInt((match1 ? match1[1] : '0%').replace('%', ''));
+    const itemsSold = parseInt(match1 ? match1[2] : '0');
 
     const match2 = memberSinceRaw.match(/since:(.*\d)/);
     const memberSinceDate = match2 ? new Date(match2[1]) : 'N/A';

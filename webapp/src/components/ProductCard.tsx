@@ -4,13 +4,14 @@ import { ZBayProductWithMetadata } from '../types/product';
 interface ProductCardProps {
   product: ZBayProductWithMetadata;
 
+  caption?: string;
   status?: string;
   isLoading?: boolean;
   actionTitle?: string;
   onAction?: (product: ZBayProductWithMetadata) => void;
 }
 
-const ProductCard = ({ product, onAction, actionTitle, isLoading, status }: ProductCardProps) => {
+const ProductCard = ({ product, caption, onAction, actionTitle, isLoading, status }: ProductCardProps) => {
   return (
     <Card
       direction={{ base: 'column', sm: 'row' }}
@@ -53,14 +54,23 @@ const ProductCard = ({ product, onAction, actionTitle, isLoading, status }: Prod
         {
           actionTitle && onAction && (
             <CardFooter>
-              <Button
-                variant="solid"
-                colorScheme="orange"
-                onClick={() => onAction(product)}
-                isLoading={isLoading}
-              >
-                {actionTitle}
-              </Button>
+              <VStack align="flex-start">
+                <Button
+                  variant="solid"
+                  colorScheme="orange"
+                  onClick={() => onAction(product)}
+                  isLoading={isLoading}
+                >
+                  {actionTitle}
+                </Button>
+                {
+                  caption && (
+                    <Text fontSize="sm" color="gray.400">
+                      {caption}
+                    </Text>
+                  )
+                }
+              </VStack>
             </CardFooter>
           )
         }

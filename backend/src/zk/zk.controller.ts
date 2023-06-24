@@ -22,4 +22,9 @@ export class ZkController {
       attestation: attestation.toString(),
     };
   }
+
+  @Post('prove-reputation')
+  async proveReputation(@Body() body: { account: string }) {
+    return this.svc.proveReputation(body.account);
+  }
 }

@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import "./IZBayVerifier.sol";
 import { PlonkVerifier } from "./zk/ReputationVerifier.sol";
 
-contract ZBayZKVerifier is IZBayVerifier {
+contract ZBayReputationVerifier is IZBayVerifier {
     PlonkVerifier private _verifier;
 
     constructor() {
