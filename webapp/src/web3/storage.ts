@@ -1,4 +1,4 @@
-import { Address, toHex } from 'viem';
+import { Address, fromHex, toHex } from 'viem';
 // @ts-expect-error - no types
 import { Web3Storage } from 'web3.storage';
 
@@ -16,8 +16,10 @@ export async function store(object: unknown): Promise<Address> {
   return toHex(cid);
 }
 
-export async function retrieve(cid: string) {
+export async function retrieve(cidHex: Address) {
+  const cid = fromHex(cidHex, 'string');
+
   const res = await client.get(cid);
-  const [file] = await res.files();
-  return JSON.parse(Buffer.from(file).toString('utf-8'));
+  const [file]: File[] = await res.files();
+  return JSON.parse(Buffer.from(await file.arrayBuffer()).toString('utf-8'));
 }

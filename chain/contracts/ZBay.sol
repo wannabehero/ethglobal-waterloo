@@ -146,30 +146,30 @@ contract ZBay is ERC2771Context, Ownable {
         product.state = ZBayProductState.Dispatched;
         product.attestation = attestation;
 
-        bytes memory assertedClaim = abi.encodePacked(
-            "Product was dispatched ",
-            product.id,
-            " with metadata at ",
-            product.cid,
-            " seller ",
-            product.seller,
-            " buyer ",
-            product.buyer,
-            " at price ",
-            product.price
-        );
-        product.assertionId = _disputeOracle.assertTruth(
-            assertedClaim,
-            _msgSender(),
-            address(this), // callback recipient
-            address(0), // escalation manager
-            30 days,
-            _token,
-            product.price / 2, // bond is 50% of the price
-            "ASSERT_TRUTH",
-            bytes32(0)
-        );
-        _assertionToProductId[product.assertionId] = product.id;
+        // bytes memory assertedClaim = abi.encodePacked(
+        //     "Product was dispatched ",
+        //     product.id,
+        //     " with metadata at ",
+        //     product.cid,
+        //     " seller ",
+        //     product.seller,
+        //     " buyer ",
+        //     product.buyer,
+        //     " at price ",
+        //     product.price
+        // );
+        // product.assertionId = _disputeOracle.assertTruth(
+        //     assertedClaim,
+        //     _msgSender(),
+        //     address(this), // callback recipient
+        //     address(0), // escalation manager
+        //     30 days,
+        //     _token,
+        //     product.price / 2, // bond is 50% of the price
+        //     "ASSERT_TRUTH",
+        //     bytes32(0)
+        // );
+        // _assertionToProductId[product.assertionId] = product.id;
 
         emit ProductDispatched(id);
     }

@@ -8,7 +8,7 @@ export async function generateAttestation(
   buyer: Address,
   trackingNumber: string,
 ): Promise<bigint> {
-  const response = await fetch(`${BASE_URL}/generate-attestation`, {
+  const response = await fetch(`${BASE_URL}/zk/generate-attestation`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -32,7 +32,7 @@ export async function proveAttestation(
   buyer: Address,
   trackingNumber: string,
 ): Promise<{ proof: Address, attestation: bigint }> {
-  const response = await fetch(`${BASE_URL}/prove-attestation`, {
+  const response = await fetch(`${BASE_URL}/zk/prove-attestation`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
