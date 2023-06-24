@@ -10,4 +10,10 @@ export class ReputationController {
     console.log(`in reputation controller: ${walletAddress}`);
     return this.svc.getReputation(walletAddress);
   }
+
+  @Get('getAllUsers')
+  async getAllUsers() {
+    console.log(`in get all users list controller:`);
+    return this.svc.getAllUsers();
+  }
 }

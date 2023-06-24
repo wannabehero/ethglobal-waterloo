@@ -10,10 +10,49 @@ const client = new ApolloClient({
     uri: AIRSTACK_ENDPOINT,
     cache: new InMemoryCache(),
     headers: { Authorization: AIRSTACK_API_KEY },
-})
+});
+
+export interface UserReputation {
+    id: string;
+    reputation: number;
+}
+
+function sleep(milliseconds: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
 
 @Injectable()
 export class ReputationService {
+
+    async getAllUsers(): Promise<Array<UserReputation>> {
+        const users = [];
+        
+        const query = gql`{
+            Socials(input: {filter: {_or: [{dappName: {_eq: farcaster}}, {dappName: {_eq: lens}}]}, blockchain: ethereum, limit: 5}) {
+              Social {
+                profileName
+                userAddress
+              }
+            }
+          }`;
+        
+        const response = await client.query({query});
+        const usersData = response.data.Socials.Social;
+
+        console.log(usersData);
+        
+        for (const user of usersData) {
+            await sleep(5000);
+            const reputation = await this.getReputation(user.userAddress);
+            users.push({id: user.userAddress, reputation: reputation});
+        }
+        
+
+        console.log(users);
+        
+        return users;
+    }
+
 
     async getReputation(walletAddress: string): Promise<number> {
         console.log(`in reputation service: ${walletAddress}`);
@@ -37,7 +76,11 @@ export class ReputationService {
         const reputationTransactions = numberOfTransactions * 0.1;
         const reputationSocial = numberOfSocialProfiles * 10;
         console.log(reputationAge + reputationPOAPs + reputationTransactions + reputationSocial);
-        const reputation = 1 + (1 - (Math.round(reputationAge + reputationPOAPs + reputationTransactions + reputationSocial))/100)
+        let reputation = 1 + (1 - (Math.round(reputationAge + reputationPOAPs + reputationTransactions + reputationSocial))/100)
+
+        if (isNaN(reputation) || reputation < 1) {
+            reputation = 1;
+        }
 
         console.log(reputation);
 
@@ -66,7 +109,7 @@ export class ReputationService {
 
         const response = await client.query({query});
 
-        return response.data.ethereum.TokenTransfer.length + response.data.polygon.TokenTransfer.length;
+        return response.data.ethereum.TokenTransfer?.length + response.data.polygon.TokenTransfer?.length;
     }
 
     async getDateOfFirstTransaction(walletAddress: string): Promise<Date> {
@@ -110,9 +153,8 @@ export class ReputationService {
           }`;
         
         const response = await client.query({query});
-        const dateEthereum = new Date(response.data.ethereum.TokenTransfer[0].blockTimestamp);
-        const datePolygon = new Date(response.data.polygon.TokenTransfer[0].blockTimestamp);
-
+        const dateEthereum = response.data.ethereum.TokenTransfer ? new Date(response.data.ethereum.TokenTransfer[0]?.blockTimestamp) : new Date();
+        const datePolygon = response.data.polygon.TokenTransfer ? new Date(response.data.polygon.TokenTransfer[0]?.blockTimestamp) : new Date();
         
         return dateEthereum < datePolygon ? dateEthereum : datePolygon;
 
