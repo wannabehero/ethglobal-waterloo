@@ -13,7 +13,7 @@ import { Browser } from 'puppeteer';
       useFactory: async () => {
         puppeteer.use(
           RecaptchaPlugin({
-            provider: { id: '2captcha', token: '264d2212bd653dfb27f462b752788f18' },
+            provider: { id: '2captcha', token: process.env.CAPTCHA_TOKEN },
             visualFeedback: true, // colorize reCAPTCHAs (violet = detected, green = solved)
           }),
         );
