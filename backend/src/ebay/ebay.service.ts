@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { Browser } from 'puppeteer';
 
-const APIFY_TOKEN = 'apify_api_Mu3Gri5HGx2TYBpgWInZIL5VjxNfws3YVkMU';
+const APIFY_TOKEN = process.env.APIFY_TOKEN;
 
 @Injectable()
 export class EbayService implements OnModuleDestroy {
@@ -13,7 +13,6 @@ export class EbayService implements OnModuleDestroy {
   }
 
   async getEbayItem(itemUrl: string) {
-    console.log(`in get ebay item controller: ${itemUrl}`);
     const response = await fetch(
       `https://api.apify.com/v2/acts/dtrungtin~ebay-items-scraper/run-sync-get-dataset-items?token=${APIFY_TOKEN}`,
       {
@@ -39,6 +38,7 @@ export class EbayService implements OnModuleDestroy {
 
   async getEbayMerchantData(merchantUrl: string) {
     const page = await this.browser.newPage();
+    await page.setDefaultNavigationTimeout(60000);
     await page.goto(merchantUrl);
     await page.solveRecaptchas();
 
@@ -50,23 +50,32 @@ export class EbayService implements OnModuleDestroy {
 
     await page.waitForSelector("[class='str-seller-card__stats-content']", { timeout: 10000 });
 
-    const element = await page.$("[class='str-seller-card__stats-content']");
-    const merchantDataRaw = await page.evaluate((el) => el.textContent, element);
-    console.log(merchantDataRaw);
+    const element1 = await page.$("[class='str-seller-card__stats-content']");
+    const merchantDataRaw = await page.evaluate((el) => el.textContent, element1);
+
+    const element2 = await page.$("[class='str-about-description__seller-info']");
+    const memberSinceRaw = await page.evaluate((el) => el.textContent, element2);
 
     // 100% Positive feedback (4)7 Items sold1 Follower
     // 100% Positive feedback (1)
-    const regex = /(\d+%)(?:.*)feedback(.*)\sItems/;
-    const match = merchantDataRaw.match(regex);
+    console.log(merchantDataRaw);
+    console.log(memberSinceRaw);
 
-    const positiveFeedback = match[1];
-    const itemsSold = match[2];
+    const match1 = merchantDataRaw.match(/(\d+%)(?:.*)feedback(.*)\sItems/);
+    const positiveFeedback = match1 ? match1[1] : "0%";
+    const itemsSold = match1 ? match1[2] : "0";
+
+    const match2 = memberSinceRaw.match(/since:(.*\d)/);
+    const memberSinceDate = match2 ? new Date(match2[1]) : "N/A";
+    console.log(memberSinceDate);
+
     console.log(positiveFeedback);
     console.log(itemsSold);
 
     return {
       itemsSold,
       positiveFeedback,
+      memberSinceDate,
     };
   }
 }
