@@ -4,7 +4,7 @@ const puppeteer = require('puppeteer-extra')
 const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha')
 puppeteer.use(
   RecaptchaPlugin({
-    provider: { id: '2captcha', token: '264d2212bd653dfb27f462b752788f18' },
+    provider: { id: '2captcha', token: 2CAPTCHA_TOKEN },
     visualFeedback: true // colorize reCAPTCHAs (violet = detected, green = solved)
   })
 )
@@ -14,7 +14,7 @@ export class EbayService {
 
 
     async getEbayItem(itemUrl: string): Promise<string> {
-        const response = await fetch('https://api.apify.com/v2/acts/dtrungtin~ebay-items-scraper/run-sync-get-dataset-items?token=apify_api_Mu3Gri5HGx2TYBpgWInZIL5VjxNfws3YVkMU', {
+        const response = await fetch('https://api.apify.com/v2/acts/dtrungtin~ebay-items-scraper/run-sync-get-dataset-items?token=APIFY_TOKEN', {
             method: 'POST',
             body: JSON.stringify({
                 "maxItems": 1,
