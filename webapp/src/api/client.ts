@@ -1,4 +1,5 @@
 import { Address } from 'viem';
+import { EbayItemData, EbayItemResponse } from './types';
 
 const BASE_URL = import.meta.env.VITE_API_URL as string;
 
@@ -51,4 +52,12 @@ export async function proveAttestation(
     proof: res.proof,
     attestation: BigInt(res.attestation),
   }));
+}
+
+export async function getEbayItemData(itemUrl: string): Promise<EbayItemData> {
+  const query = new URLSearchParams({ itemUrl });
+  const response: EbayItemResponse = await fetch(`${BASE_URL}/ebay/getEbayItem?itemUrl=${query.toString()}`)
+    .then((res) => res.json());
+
+  return response[0];
 }

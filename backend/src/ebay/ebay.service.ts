@@ -1,79 +1,72 @@
-import { Injectable } from '@nestjs/common';
+import * as fs from 'fs';
+import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Browser } from 'puppeteer';
 
-const puppeteer = require('puppeteer-extra')
-const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha')
-puppeteer.use(
-  RecaptchaPlugin({
-    provider: { id: '2captcha', token: '264d2212bd653dfb27f462b752788f18' },
-    visualFeedback: true // colorize reCAPTCHAs (violet = detected, green = solved)
-  })
-)
+const APIFY_TOKEN = 'apify_api_Mu3Gri5HGx2TYBpgWInZIL5VjxNfws3YVkMU';
 
 @Injectable()
-export class EbayService {
+export class EbayService implements OnModuleDestroy {
+  constructor(private readonly browser: Browser) {}
 
+  async onModuleDestroy() {
+    await this.browser.close();
+  }
 
-    async getEbayItem(itemUrl: string): Promise<string> {
-        const response = await fetch('https://api.apify.com/v2/acts/dtrungtin~ebay-items-scraper/run-sync-get-dataset-items?token=apify_api_Mu3Gri5HGx2TYBpgWInZIL5VjxNfws3YVkMU', {
-            method: 'POST',
-            body: JSON.stringify({
-                "maxItems": 1,
-                "proxyConfig": {
-                    "useApifyProxy": true
-                },
-                "startUrls": [
-                    {
-                        "url": itemUrl
-                    },
-                ]
-            }),
-            headers: {
-                'Content-Type': 'application/json'
-            }
-            });
-            const data = await response.text();
-            return data;
+  async getEbayItem(itemUrl: string) {
+    console.log(`in get ebay item controller: ${itemUrl}`);
+    const response = await fetch(
+      `https://api.apify.com/v2/acts/dtrungtin~ebay-items-scraper/run-sync-get-dataset-items?token=${APIFY_TOKEN}`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          maxItems: 1,
+          proxyConfig: {
+            useApifyProxy: true,
+          },
+          startUrls: [
+            {
+              url: itemUrl,
+            },
+          ],
+        }),
+        headers: {
+          'content-type': 'application/json',
+        },
+      },
+    );
+    return response.json();
+  }
 
-    }
+  async getEbayMerchantData(merchantUrl: string) {
+    const page = await this.browser.newPage();
+    await page.goto(merchantUrl);
+    await page.solveRecaptchas();
 
-    async getEbayMerchantData(merchantUrl: string): Promise<string> {
+    const html = await page.content();
+    //save html to file
+    fs.writeFileSync('response.html', html);
+    //save screenshot to file
+    await page.screenshot({ path: 'response.png', fullPage: true });
 
+    await page.waitForSelector("[class='str-seller-card__stats-content']", { timeout: 10000 });
 
-        const merchantDataRaw = await puppeteer.launch({ headless: true }).then(async browser => {
-            const page = await browser.newPage();
-            await page.goto(merchantUrl);
-          
-            await page.solveRecaptchas();
-            
-            const html = await page.content();
-            //save html to file
-            const fs = require('fs');
-            fs.writeFile("response.html", html, function(err) {});
-            //save screenshot to file
-            await page.screenshot({ path: 'response.png', fullPage: true });
-            
-            const element = await page.$("[class='str-seller-card__stats-content']");
-            let value = await page.evaluate(el => el.textContent, element);
-            await browser.close();
-            return value;
-        })
+    const element = await page.$("[class='str-seller-card__stats-content']");
+    const merchantDataRaw = await page.evaluate((el) => el.textContent, element);
+    console.log(merchantDataRaw);
 
-        const regex = /(\d+%)(?:.*)feedback(.*)\sItems/;
-        const match = merchantDataRaw.match(regex);
+    // 100% Positive feedback (4)7 Items sold1 Follower
+    // 100% Positive feedback (1)
+    const regex = /(\d+%)(?:.*)feedback(.*)\sItems/;
+    const match = merchantDataRaw.match(regex);
 
-        
-        const positiveFeedback = match[1];
-        const itemsSold = match[2];
-        console.log(positiveFeedback); 
-        console.log(itemsSold);
-        
+    const positiveFeedback = match[1];
+    const itemsSold = match[2];
+    console.log(positiveFeedback);
+    console.log(itemsSold);
 
-        const ebayMerchantData = {
-            "positiveFeedback": positiveFeedback,
-            "itemsSold": itemsSold
-        }
-
-        return JSON.stringify(ebayMerchantData);
-    
-    }
+    return {
+      itemsSold,
+      positiveFeedback,
+    };
+  }
 }

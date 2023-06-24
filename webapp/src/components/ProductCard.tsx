@@ -3,8 +3,8 @@ import { ZBayProductWithMetadata } from '../types/product';
 
 interface ProductCardProps {
   product: ZBayProductWithMetadata;
-  isLoading: boolean;
 
+  isLoading?: boolean;
   actionTitle?: string;
   onAction?: (product: ZBayProductWithMetadata) => void;
 }

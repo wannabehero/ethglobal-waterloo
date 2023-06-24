@@ -2,13 +2,17 @@ import { VStack, Text, HStack, Button, Spacer } from '@chakra-ui/react';
 import useProducts from '../hooks/useProducts';
 import { useAccount } from 'wagmi';
 import ProductCard from '../components/ProductCard';
-import { ZBayProduct } from '../types/product';
+import CreateProductModal from '../components/CreateProductModal';
 import { useState } from 'react';
 
 const Seller = () => {
   const { address } = useAccount();
   const { products } = useProducts({ seller: address });
-  const [loadingProduct, setLoadingProduct] = useState<ZBayProduct>();
+  const [isModelOpen, setIsModelOpen] = useState(false);
+
+  const onCreate = () => {
+    setIsModelOpen(true);
+  };
 
   return (
     <>
@@ -17,7 +21,7 @@ const Seller = () => {
           My Products
         </Text>
         <Spacer />
-        <Button rounded="xl" colorScheme="green">
+        <Button rounded="xl" colorScheme="green" onClick={() => onCreate()}>
           Create
         </Button>
       </HStack>
@@ -26,10 +30,13 @@ const Seller = () => {
           <ProductCard
             key={`product-${address}-${product.id}`}
             product={product}
-            isLoading={loadingProduct?.id === product.id}
           />
         ))}
       </VStack>
+      <CreateProductModal
+        isOpen={isModelOpen}
+        onClose={() => setIsModelOpen(false)}
+      />
     </>
   );
 };
