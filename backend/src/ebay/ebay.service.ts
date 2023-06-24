@@ -47,7 +47,7 @@ export class EbayService {
     async getEbayMerchantData(merchantUrl: string): Promise<string> {
 
 
-        const merchantDataRaw = await puppeteer.launch({ headless: true }).then(async browser => {
+        const [merchantDataRaw, memberSinceRaw] = await puppeteer.launch({ headless: true }).then(async browser => {
             const page = await browser.newPage();
             await page.setDefaultNavigationTimeout(60000);
             await page.goto(merchantUrl);
@@ -63,23 +63,33 @@ export class EbayService {
             
             const element = await page.$("[class='str-seller-card__stats-content']");
             let value = await page.evaluate(el => el.textContent, element);
+
+            const element2 = await page.$("[class='str-about-description__seller-info']");
+            let value2 = await page.evaluate(el => el.textContent, element2);
             await browser.close();
-            return value;
+            return [value, value2];
         })
+
+        console.log(merchantDataRaw);
+        console.log(memberSinceRaw);
 
         const regex = /(\d+%)(?:.*)feedback(.*)\sItems/;
         const match = merchantDataRaw.match(regex);
-
-        
-        const positiveFeedback = match[1];
-        const itemsSold = match[2];
+        const positiveFeedback = match ? match[1] : "0%";
+        const itemsSold = match ? match[2] : "0";
         console.log(positiveFeedback); 
         console.log(itemsSold);
+
+        const regex2 = /since:(.*\d)/;
+        const match2 = memberSinceRaw.match(regex2);
+        const memberSinceDate = match2 ? new Date(match2[1]) : "N/A";
+        console.log(memberSinceDate);
         
 
         const ebayMerchantData = {
             "positiveFeedback": positiveFeedback,
-            "itemsSold": itemsSold
+            "itemsSold": itemsSold,
+            "memberSinceDate": memberSinceDate
         }
 
         return JSON.stringify(ebayMerchantData);
