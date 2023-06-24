@@ -2,9 +2,15 @@
   "name": "hardhat-project",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^2.0.2",
+    "@wagmi/cli": "^1.2.0",
     "hardhat": "^2.16.0"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.9.2"
+    "@openzeppelin/contracts": "^4.9.2",
+    "@sismo-core/sismo-connect-solidity": "^0.0.7",
+    "@uma/core": "^2.55.0"
+  },
+  "scripts": {
+    "test": "hardhat test"
   }
 }
