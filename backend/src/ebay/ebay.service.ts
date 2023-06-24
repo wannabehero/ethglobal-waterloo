@@ -1,10 +1,18 @@
 import { Injectable } from '@nestjs/common';
 
+const dotenv = require("dotenv");
+
+dotenv.config();
+
 const puppeteer = require('puppeteer-extra')
 const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha')
+
+const CAPTCHA_TOKEN = process.env.CAPTCHA_TOKEN;
+const APIFY_TOKEN = process.env.APIFY_TOKEN;
+
 puppeteer.use(
   RecaptchaPlugin({
-    provider: { id: '2captcha', token: 2CAPTCHA_TOKEN },
+    provider: { id: '2captcha', token: CAPTCHA_TOKEN },
     visualFeedback: true // colorize reCAPTCHAs (violet = detected, green = solved)
   })
 )
@@ -14,7 +22,7 @@ export class EbayService {
 
 
     async getEbayItem(itemUrl: string): Promise<string> {
-        const response = await fetch('https://api.apify.com/v2/acts/dtrungtin~ebay-items-scraper/run-sync-get-dataset-items?token=APIFY_TOKEN', {
+        const response = await fetch(`https://api.apify.com/v2/acts/dtrungtin~ebay-items-scraper/run-sync-get-dataset-items?token=${APIFY_TOKEN}`, {
             method: 'POST',
             body: JSON.stringify({
                 "maxItems": 1,
