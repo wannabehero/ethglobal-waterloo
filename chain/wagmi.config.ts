@@ -7,7 +7,8 @@ export default defineConfig({
   ],
   plugins: [
     hardhat({
-      project: '.'
+      project: '.',
+      include: ['**/ZBay.sol/**'],
     }),
     react(),
   ],

@@ -1,35 +1,47 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { ColorModeScript, Container, Tab, TabList, TabPanel, TabPanels, Tabs, theme, useColorMode, VStack } from '@chakra-ui/react';
+import { darkTheme, lightTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { WagmiConfig } from 'wagmi';
+
+import Footer from './components/Footer';
+import Header from './components/Header';
+import { chains, wagmiConfig } from './web3/wallet';
+import Seller from './screens/Seller';
+import Buyer from './screens/Buyer';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { colorMode } = useColorMode();
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <WagmiConfig config={wagmiConfig}>
+      <RainbowKitProvider
+        chains={chains}
+        theme={colorMode === 'light' ? lightTheme() : darkTheme()}
+        showRecentTransactions
+      >
+        <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+        <Container py="16px">
+          <VStack align="stretch">
+            <Header />
+            <Tabs variant="soft-rounded" colorScheme="blue">
+              <TabList>
+                <Tab>Sell something</Tab>
+                <Tab>Buy something</Tab>
+              </TabList>
+              <TabPanels>
+                <TabPanel>
+                  <Seller />
+                </TabPanel>
+                <TabPanel>
+                  <Buyer />
+                </TabPanel>
+              </TabPanels>
+            </Tabs>
+            <Footer />
+          </VStack>
+        </Container>
+      </RainbowKitProvider>
+    </WagmiConfig>
+  );
 }
 
-export default App
+export default App;
