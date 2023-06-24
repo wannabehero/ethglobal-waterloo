@@ -1,41 +1,44 @@
-import { useEffect, useState } from 'react';
-import { ZBayProductWithMetadata } from '../types/product';
+import { useCallback, useEffect, useState } from 'react';
+import { ZBayProduct, ZBayProductWithMetadata } from '../types/product';
 import { Address } from 'viem';
-import { useZBayGetProduct } from '../web3/contracts';
+import { zBayABI } from '../web3/contracts';
 import { ZBAY_DEPLOMENTS } from '../web3/consts';
-import { useChainId } from 'wagmi';
+import { useChainId, usePublicClient } from 'wagmi';
 import { retrieve } from '../web3/storage';
+import { fetchProducts } from '../api/client';
 
-const useProducts = ({ buyer, seller }: { buyer?: Address; seller?: Address } = {}) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const useProducts = (_: { buyer?: Address; seller?: Address } = {}) => {
   const [products, setProducts] = useState<ZBayProductWithMetadata[]>([]);
   const chainId = useChainId();
+  const publicClient = usePublicClient();
 
-  const { data: prd0 } = useZBayGetProduct({
-    address: ZBAY_DEPLOMENTS[chainId],
-    args: [0n],
-    enabled: true,
-  });
+  const refreshProducts = useCallback(async () => {
+    await fetchProducts()
+      .then((products) => Promise.all([
+        publicClient.multicall({
+          contracts: products.map((prd) => ({
+            address: ZBAY_DEPLOMENTS[chainId],
+            abi: zBayABI,
+            functionName: 'getProduct',
+            args: [prd.id],
+          }))
+        }),
+        Promise.all(products.map((prd) => retrieve(prd.cid))),
+      ]))
+      .then(([products, metadatas]) => {
+        setProducts(products.map((prd, i) => ({
+          ...(prd.result as ZBayProduct),
+          metadata: metadatas[i]
+        })));
+      });
+  }, [chainId, publicClient, setProducts]);
 
   useEffect(() => {
-    if (!prd0) {
-      return;
-    }
+    refreshProducts();
+  }, [refreshProducts]);
 
-    // TODO: fetch products
-    const products = [
-      prd0
-    ];
-    Promise.all(
-      products.map((prd) => retrieve(prd.cid))
-    ).then((metadatas) => {
-      setProducts(products.map((prd, i) => ({
-        ...prd,
-        metadata: metadatas[i]
-      })));
-    })
-  }, [buyer, seller, setProducts, prd0]);
-
-  return { products };
+  return { products, refreshProducts };
 };
 
 export default useProducts;
