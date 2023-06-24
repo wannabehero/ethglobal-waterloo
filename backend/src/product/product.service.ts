@@ -13,22 +13,26 @@ const client = new ApolloClient({
 interface Product {
     id: string;
     cid: string; 
-    price: number;
+    price: string;
     seller: string;
-    timestamp: Date;
+    timestamp: string;
 }
 
 @Injectable()
 export class ProductService {
 
     async getProductsByMerchant(merchantId: string): Promise<string> {
-        const products = this.getProducts(merchantId);
+        const products = await this.getProducts(merchantId);
+
+        console.log(products);
 
         return JSON.stringify(products);
     }
 
     async getAllProducts(): Promise<string> {
-        const products = this.getProducts(null);
+        const products = await this.getProducts(null);
+
+        console.log(products);
 
         return JSON.stringify(products);
     }
@@ -56,16 +60,14 @@ export class ProductService {
                 }`;
         }
 
-
         const response = await client.query({query});
-        console.log(response)
         const products = response.data.productCreateds.map((product) => {
             return {
                 id: product.id,
                 cid: product.cid,
                 price: product.price,
                 seller: product.seller,
-                timestamp: new Date(product.blockTimestamp * 1000),
+                timestamp: product.blockTimestamp
             }
         });
 
