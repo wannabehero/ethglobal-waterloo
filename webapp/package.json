@@ -14,6 +14,7 @@
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@rainbow-me/rainbowkit": "^1.0.3",
+    "@sismo-core/sismo-connect-react": "^0.0.15",
     "buffer": "^6.0.3",
     "framer-motion": "^10.12.17",
     "react": "^18.2.0",

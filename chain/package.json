@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.9.2",
-    "@sismo-core/sismo-connect-solidity": "^0.0.7",
+    "@sismo-core/sismo-connect-solidity": "^0.0.8",
     "@uma/core": "^2.55.0"
   },
   "scripts": {

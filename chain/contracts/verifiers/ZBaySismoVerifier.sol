@@ -13,7 +13,7 @@ contract ZBaySismoVerifier is IZBayVerifier, SismoConnect {
     mapping (address => mapping (uint256 => bool)) private _verifiedVaults;
 
     constructor(bytes16 appId_)
-        SismoConnect(appId_)
+        SismoConnect(buildConfig(appId_))
     {}
 
     function verify(bytes calldata proof, uint256[] calldata) external returns (bool) {

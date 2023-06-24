@@ -55,12 +55,27 @@ async function verification() {
   ).then((tx) => tx.wait());
 }
 
+async function verification2() {
+  const zbay = await ethers.getContractAt("ZBay", "0x93387F4cc9EC76233272D2a38Cc77a0B729925a6");
+
+  const ZBaySismoVerifier = await ethers.getContractFactory("ZBaySismoVerifier");
+  const zBaySismoVerifier = await ZBaySismoVerifier.deploy('0x10f9c1b389261a5bbc0ccd0c094d1e78');
+  await zBaySismoVerifier.deployed();
+  console.log("ZBaySismoVerifier deployed to:", zBaySismoVerifier.address);
+
+  await zbay.updateVerifiers(
+    [2],
+    [zBaySismoVerifier.address],
+    [200],
+  ).then((tx) => tx.wait());
+}
+
 async function mint() {
   const token = await ethers.getContractAt("MockToken", "0x9FBf4E70Aecfa43dd1B00dE828FDf68E903a6F25");
   await token.mint("0xE432a8314d971441Ad7700e8b45d66cC326CE517", ethers.utils.parseEther("10000"));
 }
 
-verification().catch((error) => {
+verification2().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });

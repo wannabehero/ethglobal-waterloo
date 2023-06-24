@@ -3,16 +3,23 @@ import useProducts from '../hooks/useProducts';
 import { useAccount, useChainId, usePublicClient, useWalletClient } from 'wagmi';
 import ProductCard from '../components/ProductCard';
 import CreateProductModal from '../components/CreateProductModal';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ZBayProduct, ZBayProductMetadata, ZBayProductState, ZBayProductWithMetadata } from '../types/product';
 import { store } from '../web3/storage';
-import { useZBayCreateProduct, useZBayDispatch, useZBayGetScore, useZBaySubmitVerification } from '../web3/contracts';
+import { useZBayCreateProduct, useZBayDispatch, useZBayGetScore, useZBaySubmitVerification, useZBayWrite } from '../web3/contracts';
 import { ZBAY_DEPLOMENTS } from '../web3/consts';
-import { parseEther } from 'viem';
+import { Address, parseEther } from 'viem';
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit';
 import DispatchModal, { DispatchData } from '../components/DispatchModal';
 import { generateAttestation, proveReputation } from '../api/client';
 import { ensClient } from '../web3/wallet';
+import { AuthType, ClaimType, useSismoConnect } from '@sismo-core/sismo-connect-react';
+
+const SISMO_CONFIG = {
+  config: {
+    appId: '0x10f9c1b389261a5bbc0ccd0c094d1e78',
+  },
+};
 
 const Seller = () => {
   const { address } = useAccount();
@@ -23,10 +30,13 @@ const Seller = () => {
   const chainId = useChainId();
   const addRecentTransaction = useAddRecentTransaction();
   const publicClient = usePublicClient();
-  const walletClient = useWalletClient();
+  const { data: walletClient } = useWalletClient();
   const [isCreating, setIsCreating] = useState(false);
   const [isDispatching, setIsDispatching] = useState(false);
   const [isLoadingEbayVerification, setIsLoadingEbayVerification] = useState(false);
+  const [isLoadingSismoVerification, setIsLoadingSismoVerification] = useState(false);
+
+  const { sismoConnect, responseBytes: sismoProof } = useSismoConnect(SISMO_CONFIG);
 
   const { writeAsync: createProduct } = useZBayCreateProduct({
     address: ZBAY_DEPLOMENTS[chainId],
@@ -41,7 +51,7 @@ const Seller = () => {
   const { writeAsync: submitVerification } = useZBaySubmitVerification({
     address: ZBAY_DEPLOMENTS[chainId],
     gas: 3000000n,
-  })
+  });
 
   const { data: score, refetch: reloadScore } = useZBayGetScore({
     address: ZBAY_DEPLOMENTS[chainId],
@@ -152,6 +162,47 @@ const Seller = () => {
 
   }, [address, submitVerification, reloadScore, addRecentTransaction, setIsLoadingEbayVerification, publicClient]);
 
+  const onSismoConnect = () => {
+    // if (!address) {
+    //   return;
+    // }
+
+    setIsLoadingSismoVerification(true);
+
+    sismoConnect.request({
+      auth: {authType: AuthType.VAULT},
+      claim: {groupId: '0x1cde61966decb8600dfd0749bd371f12', value: 15, claimType: ClaimType.GTE},
+      // TODO: add signature
+      // signature: { message: encodeAbiParameters([{ type: 'address' }], [address]) },
+    });
+  };
+
+  useEffect(() => {
+    if (!sismoProof || !walletClient) {
+      return;
+    }
+
+    const handleSismoReputation = async (proof: Address) => {
+      setIsLoadingSismoVerification(true);
+      try {
+        const tx = await submitVerification({
+          args: [2n, proof, []],
+        });
+        addRecentTransaction({
+          hash: tx.hash,
+          description: 'Submitting verification'
+        });
+        await publicClient.waitForTransactionReceipt(tx);
+        reloadScore();
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setIsLoadingSismoVerification(false);
+      }
+    };
+    handleSismoReputation(sismoProof as Address);
+  }, [sismoProof, walletClient, submitVerification, addRecentTransaction, publicClient, reloadScore]);
+
   return (
     <VStack spacing="4" align="stretch">
       {
@@ -170,7 +221,7 @@ const Seller = () => {
               }
               {
                 (score === 0 || score === 100) && (
-                  <Button colorScheme="purple" rounded="xl">
+                  <Button colorScheme="purple" rounded="xl" isLoading={isLoadingSismoVerification} onClick={onSismoConnect}>
                     Sismo Connect
                   </Button>
                 )
