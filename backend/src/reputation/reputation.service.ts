@@ -29,11 +29,13 @@ export class ReputationService {
         const numberOfTransactions = await this.getCountOfTransactions(walletAddress);
         console.log(numberOfTransactions);
 
-        const reputationAge = accountAgeInDays * 0.4;
-        const reputationPOAPs = poapsLength * 0.1;
-        
-        const reputationTransactions = numberOfTransactions * 0.5;
+        const numberOfSocialProfiles = await this.getSocialProfiles(walletAddress);
+        console.log(numberOfSocialProfiles);
 
+        const reputationAge = accountAgeInDays * 0.1;
+        const reputationPOAPs = poapsLength * 10;
+        const reputationTransactions = numberOfTransactions * 0.1;
+        const reputationSocial = numberOfSocialProfiles * 10;
         const reputation = Math.round(reputationAge + reputationPOAPs + reputationTransactions);
         console.log(reputation);
 
@@ -149,5 +151,20 @@ export class ReputationService {
 
         return response.data.Poaps?.length ? response.data.Poaps.length : 0;
     
+    }
+
+    async getSocialProfiles(walletAddress: string): Promise<number> {
+        const query = gql`{
+            Wallet(input: {identity: "${walletAddress}", blockchain: ethereum}) {
+              socials {
+                dappName
+                profileName
+              }
+            }
+          }`;
+
+        const response = await client.query({query});
+
+        return response.data.Wallet.socials.length;
     }
 }
