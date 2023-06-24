@@ -63,7 +63,7 @@ describe("zBay", function () {
     it("should create, purchase, dispatch and deliver product", async function () {
       const { zbay, token, buyer, seller } = await loadFixture(deployZBayFixture);
 
-      const cid = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("CID"));
+      const cid = ethers.utils.toUtf8Bytes("CID");
 
       // verify seller
       await zbay.connect(seller)
@@ -78,7 +78,7 @@ describe("zBay", function () {
       // check it's created
       let product = await zbay.getProduct(0);
       expect(product.price).to.be.equal(ethers.utils.parseEther("100"));
-      expect(product.cid).to.be.equal(cid);
+      expect(product.cid).to.be.equal(ethers.utils.hexlify(cid));
       expect(product.state).to.be.equal(0);
 
       // purchase

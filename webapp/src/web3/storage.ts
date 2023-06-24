@@ -1,3 +1,4 @@
+import { Address, toHex } from 'viem';
 // @ts-expect-error - no types
 import { Web3Storage } from 'web3.storage';
 
@@ -6,13 +7,13 @@ const WEB3_STORAGE_TOKEN = import.meta.env.VITE_WEB3_STORAGE_TOKEN as string;
 const client = new Web3Storage({ token: WEB3_STORAGE_TOKEN });
 
 function makeFile(contents: string, filename: string) {
-  const blob = new Blob([JSON.stringify(contents)], { type: 'application/json' });
+  const blob = new Blob([contents], { type: 'application/json' });
   return new File([blob], filename);
 }
 
-export async function store(object: Record<string, unknown>) {
+export async function store(object: unknown): Promise<Address> {
   const cid = await client.put([makeFile(JSON.stringify(object), 'metadata.json')]);
-  return cid;
+  return toHex(cid);
 }
 
 export async function retrieve(cid: string) {

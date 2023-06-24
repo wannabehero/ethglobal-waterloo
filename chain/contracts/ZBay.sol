@@ -14,7 +14,7 @@ contract ZBay is ERC2771Context, Ownable {
     error InvalidState();
     error NotImplemented();
 
-    event ProductCreated(uint256 indexed id, address indexed seller, uint256 indexed price, bytes32 cid);
+    event ProductCreated(uint256 indexed id, address indexed seller, uint256 indexed price, bytes cid);
     event ProductPurchased(uint256 indexed id, address indexed buyer);
     event ProductDispatched(uint256 indexed id);
     event ProductDelivered(uint256 indexed id);
@@ -83,7 +83,7 @@ contract ZBay is ERC2771Context, Ownable {
     }
 
     /// @dev create a new product
-    function createProduct(uint256 price, bytes32 cid) external {
+    function createProduct(uint256 price, bytes calldata cid) external {
         require(_verificationScore[_msgSender()] >= 100, "Seller not verified");
 
         _products[_counter] = ZBayProduct({
@@ -97,9 +97,9 @@ contract ZBay is ERC2771Context, Ownable {
             assertionId: bytes32(0)
         });
 
-        _counter += 1;
-
         emit ProductCreated(_counter, _msgSender(), price, cid);
+
+        _counter += 1;
     }
 
     /// @dev purchase a product

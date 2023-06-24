@@ -10,7 +10,7 @@ export enum ZBayProductState {
   Cancelled
 }
 
-export type ZBayProduct = {
+export interface ZBayProduct {
   id: bigint;
   cid: string;
   price: bigint;
@@ -19,16 +19,19 @@ export type ZBayProduct = {
   state: ZBayProductState;
   attestation: bigint;
   assertionId: string;
-};
+}
 
-export type ZBayProductWithMetadata = ZBayProduct & {
-  metadata: {
-    title: string;
-    image: string;
-    location: string;
-    brand: string;
-    type: string;
-    condition: string;
-  }
-};
+export interface ZBayProductMetadata {
+  title: string;
+  photoUrl: string;
+  location: string;
+  brand: string;
+  type: string;
+  condition: string;
+  price?: number;
+}
+
+export interface ZBayProductWithMetadata extends ZBayProduct {
+  metadata: ZBayProductMetadata;
+}
 

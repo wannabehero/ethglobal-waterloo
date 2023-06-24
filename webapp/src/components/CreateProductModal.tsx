@@ -1,12 +1,16 @@
 import { Button, Divider, FormControl, FormHelperText, FormLabel, HStack, Input, InputGroup, InputRightAddon, InputRightElement, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Radio, RadioGroup, VStack } from '@chakra-ui/react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { getEbayItemData } from '../api/client';
+import { ZBayProductMetadata } from '../types/product';
 
 interface CreateProductModalProps {
   isOpen: boolean;
+  isLoading: boolean;
   onClose: () => void;
+  onCreate: (metadata: ZBayProductMetadata) => Promise<boolean>;
 }
 
-const CreateProductModal = ({ isOpen, onClose }: CreateProductModalProps) => {
+const CreateProductModal = ({ isOpen, onClose, onCreate, isLoading }: CreateProductModalProps) => {
   const [ebayUrl, setEbayUrl] = useState('');
   const [isImporting, setIsImporting] = useState(false);
 
@@ -18,13 +22,37 @@ const CreateProductModal = ({ isOpen, onClose }: CreateProductModalProps) => {
   const [location, setLocation] = useState('');
   const [price, setPrice] = useState('');
 
-  const handleImport = () => {
-    setIsImporting(true);
-    // TODO: import
-    setIsImporting(false);
-  };
+  const clearForm = useCallback(() => {
+    setTitle('');
+    setBrand('');
+    setType('');
+    setPhotoUrl('');
+    setCondition('Used');
+    setLocation('');
+    setPrice('');
+  }, [setTitle, setBrand, setType, setPhotoUrl, setCondition, setLocation, setPrice]);
 
-  const isFormValid = false;
+  const handleImport = useCallback(async () => {
+    setIsImporting(true);
+
+    try {
+      const data = await getEbayItemData(ebayUrl);
+      setTitle(data.title);
+      setBrand(data.brand);
+      setType(data.type);
+      setPhotoUrl(data.images[0] ?? data.image);
+      setCondition(data.condition);
+      setLocation(data.itemLocation);
+      setPrice(data.price.toFixed(2));
+      setEbayUrl('');
+    } catch (e) {
+      console.error(e);
+    }
+
+    setIsImporting(false);
+  }, [setIsImporting, ebayUrl, setTitle, setBrand, setType, setPhotoUrl, setCondition, setLocation, setPrice, setEbayUrl]);
+
+  const isFormValid = title.length > 0 && brand.length > 0 && type.length > 0 && photoUrl.length > 0 && location.length > 0 && price.length > 0;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -43,6 +71,7 @@ const CreateProductModal = ({ isOpen, onClose }: CreateProductModalProps) => {
                   placeholder="https://www.ebay.com/itm/069420"
                   value={ebayUrl}
                   onChange={(e) => setEbayUrl(e.target.value)}
+                  isDisabled={isImporting}
                 />
                 <InputRightElement width="5rem">
                   <Button h="1.75rem" size="sm" onClick={handleImport} isLoading={isImporting}>
@@ -93,7 +122,16 @@ const CreateProductModal = ({ isOpen, onClose }: CreateProductModalProps) => {
         </ModalBody>
 
         <ModalFooter>
-          <Button colorScheme="green" rounded="xl" isDisabled={!isFormValid}>
+          <Button
+            colorScheme="green"
+            rounded="xl"
+            isDisabled={!isFormValid}
+            onClick={() => {
+              onCreate({ title, brand, type, condition, photoUrl, location, price: parseFloat(price) })
+                .then((success) => success && clearForm());
+            }}
+            isLoading={isLoading}
+          >
             Create
           </Button>
           <Button variant="ghost" ml={3} rounded="xl" onClick={onClose}>

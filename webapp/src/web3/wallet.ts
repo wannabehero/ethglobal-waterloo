@@ -1,23 +1,17 @@
 import '@rainbow-me/rainbowkit/styles.css';
 
-import { connectorsForWallets, getDefaultWallets } from '@rainbow-me/rainbowkit';
-import {
-  braveWallet,
-  coinbaseWallet,
-  metaMaskWallet,
-  rainbowWallet,
-  safeWallet,
-  walletConnectWallet,
-} from '@rainbow-me/rainbowkit/wallets';
+import { getDefaultWallets } from '@rainbow-me/rainbowkit';
 import { configureChains, createConfig } from 'wagmi';
 import { polygonMumbai } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
+import { alchemyProvider } from 'wagmi/providers/alchemy';
 
 const WC_PROJECT_ID = import.meta.env.VITE_WC_PROJECT_ID ?? '';
+const ALCHEMY_KEY = import.meta.env.VITE_ALCHEMY_KEY ?? '';
 
 export const { chains, publicClient } = configureChains(
   [polygonMumbai],
-  [publicProvider()],
+  [alchemyProvider({ apiKey: ALCHEMY_KEY }), publicProvider()],
 );
 
 const { connectors } = getDefaultWallets({

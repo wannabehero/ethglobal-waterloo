@@ -1,5 +1,6 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import "@nomiclabs/hardhat-etherscan";
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -20,6 +21,32 @@ const config: HardhatUserConfig = {
             enabled: true,
             runs: 9999
           }
+        }
+      }
+    ]
+  },
+  networks: {
+    hardhat: {},
+    polygonMumbai: {
+      url: "https://polygon-mumbai.blockpi.network/v1/rpc/public",
+      accounts: [process.env.PRIVATE_KEY as string]
+    },
+    gnosis: {
+      url: "https://rpc.gnosischain.com",
+      accounts: [process.env.PRIVATE_KEY as string]
+    },
+  },
+  etherscan: {
+    apiKey: {
+      polygonMumbai: process.env.ETHERSCAN_KEY as string,
+    },
+    customChains: [
+      {
+        network: "zkevm",
+        chainId: 1442,
+        urls: {
+          apiURL: "https://testnet-zkevm.polygonscan.com/api",
+          browserURL: "https://testnet-zkevm.polygonscan.com"
         }
       }
     ]
