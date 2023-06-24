@@ -5,13 +5,11 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ERC2771Context, Context } from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { OptimisticOracleV3Interface } from "./vendor/OptimisticOracleV3Interface.sol";
-import "@sismo-core/sismo-connect-solidity/contracts/libs/SismoLib.sol";
 
+import "./Verifiers/IZBayVerifier.sol";
 import "./Structs.sol";
 
-contract ZBay is ERC2771Context, Ownable, SismoConnect {
-    using SismoConnectHelper for SismoConnectVerifiedResult;
-
+contract ZBay is ERC2771Context, Ownable {
     error InvalidProof();
     error InvalidState();
     error NotImplemented();
@@ -36,8 +34,11 @@ contract ZBay is ERC2771Context, Ownable, SismoConnect {
     /// @dev Mapping of address to verification score
     mapping(address => uint32) private _verificationScore;
 
-    /// @dev Mapping of verified vaults
-    mapping(uint256 => bool) private _verifiedVaults;
+    /// @dev Mapping of verifier scores
+    mapping(address => uint32) private _verifierScores;
+
+    /// @dev Mapping of verifiers
+    mapping(uint256 => address) private _verifiers;
 
     uint256 constant DEFAULT_SECURITY_MULTIPLIER = 150; // /100
     uint256 constant DEFAULT_TREASURY_PERCENT = 50; // 50 = 0.5% = 0.005 (/10000)
@@ -45,7 +46,6 @@ contract ZBay is ERC2771Context, Ownable, SismoConnect {
 
     constructor(address trustedForwarer_, OptimisticOracleV3Interface disputeOracle_, IERC20 token_)
         Ownable()
-        SismoConnect(0x10f9c1b389261a5bbc0ccd0c094d1e78)
         ERC2771Context(trustedForwarer_)
     {
         _disputeOracle = disputeOracle_;
@@ -59,31 +59,17 @@ contract ZBay is ERC2771Context, Ownable, SismoConnect {
         return _products[id];
     }
 
-    /// @dev sismo verification
-    function submitVaultVerification(bytes calldata proof) external {
-        SismoConnectVerifiedResult memory result = verify({
-            auth: buildAuth({authType: AuthType.VAULT}),
-            responseBytes: proof,
+    /// @dev verify
+    function submitVerification(uint256 verifierId, bytes calldata proof) external {
+        address verifierAddress = _verifiers[verifierId];
+        require(verifierAddress != address(0), "Verifier not found");
 
-            // TODO: better claim
-            claim: buildClaim({groupId: 0x1cde61966decb8600dfd0749bd371f12})
-        });
+        IZBayVerifier verifier = IZBayVerifier(verifierAddress);
+        uint32 score = _verifierScores[verifierAddress];
 
-        if (result.claims.length == 0) {
-            revert InvalidProof();
+        if (verifier.verify(proof)) {
+            _verificationScore[_msgSender()] += score;
         }
-
-        uint256 vaultId = result.getUserId(AuthType.VAULT);
-
-        require(!_verifiedVaults[vaultId], "Already verified");
-        _verifiedVaults[vaultId] = true;
-
-        _verificationScore[_msgSender()] += 100;
-    }
-
-    /// @dev custom verification
-    function submitCustomVerifiction(bytes calldata proof) external {
-        revert NotImplemented();
     }
 
     /// @dev create a new product
@@ -166,7 +152,9 @@ contract ZBay is ERC2771Context, Ownable, SismoConnect {
         require(product.state == ZBayProductState.Dispatched, "Invalid state");
 
         product.state = ZBayProductState.Delivered;
-        // TODO: validate the proof
+        // 0 is reserved for the attestation verifier
+        bool verified = IZBayVerifier(_verifiers[0]).verify(proof);
+        require(verified, "Invalid proof");
 
         uint256 amountToRelease = product.price * DEFAULT_SECURITY_MULTIPLIER / 100 - product.price;
         uint256 amountToTreasury = product.price * DEFAULT_TREASURY_PERCENT / 10000; // will be left at the contract
@@ -221,5 +209,18 @@ contract ZBay is ERC2771Context, Ownable, SismoConnect {
         returns (address)
     {
         return ERC2771Context._msgSender();
+    }
+
+    function updateVerifiers(uint256[] calldata ids, address[] calldata verifiers, uint32[] calldata scores)
+        external
+        onlyOwner
+    {
+        require(ids.length == verifiers.length, "Invalid input");
+        require(ids.length == scores.length, "Invalid input");
+
+        for (uint256 i = 0; i < ids.length; i++) {
+            _verifiers[ids[i]] = verifiers[i];
+            _verifierScores[verifiers[i]] = scores[i];
+        }
     }
 }
