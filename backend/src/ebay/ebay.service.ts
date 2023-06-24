@@ -41,6 +41,7 @@ export class EbayService {
 
         const merchantDataRaw = await puppeteer.launch({ headless: true }).then(async browser => {
             const page = await browser.newPage();
+            await page.setDefaultNavigationTimeout(60000);
             await page.goto(merchantUrl);
           
             await page.solveRecaptchas();
