@@ -43,7 +43,6 @@ export class EbayService {
             const page = await browser.newPage();
             await page.goto(merchantUrl);
           
-            // That's it, a single line of code to solve reCAPTCHAs 🎉
             await page.solveRecaptchas();
             
             const html = await page.content();
