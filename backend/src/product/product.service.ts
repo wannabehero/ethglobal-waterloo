@@ -18,6 +18,12 @@ interface Product {
     timestamp: string;
 }
 
+interface ProductBought {
+    id: string;
+    buyer: string;
+    timestamp: string;
+}
+
 @Injectable()
 export class ProductService {
 
@@ -36,6 +42,24 @@ export class ProductService {
 
         return JSON.stringify(products);
     }
+
+    async getProductsByBuyer(buyerId: string): Promise<string> {
+        const products = await this.getProductsBought(buyerId);
+
+        console.log(products);
+
+        return JSON.stringify(products);
+    
+    }
+
+    async getAllProductsBought(): Promise<string> {
+        const products = await this.getProductsBought(null);
+
+        console.log(products);
+
+        return JSON.stringify(products);
+    }
+
 
     async getProducts(merchantId: string): Promise<Array<Product>> {
         let query = gql`{
@@ -67,6 +91,38 @@ export class ProductService {
                 cid: product.cid,
                 price: product.price,
                 seller: product.seller,
+                timestamp: product.blockTimestamp
+            }
+        });
+
+        return products;
+        
+    }
+
+    async getProductsBought(buyerId: string): Promise<Array<ProductBought>> {
+        let query = gql`{
+            productPurchaseds {
+                id
+                buyer
+                blockTimestamp
+            }
+            }`;
+
+        if (buyerId != null)  {
+            query = gql`{
+                productPurchaseds (where: {buyer: "${buyerId}"}) {
+                    id
+                    buyer
+                    blockTimestamp
+                }
+                }`;
+        }
+
+        const response = await client.query({query});
+        const products = response.data.productPurchaseds.map((product) => {
+            return {
+                id: product.id,
+                buyer: product.buyer,
                 timestamp: product.blockTimestamp
             }
         });
