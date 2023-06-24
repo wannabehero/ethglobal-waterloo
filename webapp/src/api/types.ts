@@ -1,3 +1,5 @@
+import { Address } from 'viem';
+
 export type AttestationRequest = {
   secret: string;
   buyer: string;
@@ -23,4 +25,14 @@ export interface EbayItemData {
   upc: string;
   brand: string;
   type: string;
+}
+
+export type ProductInfoResponse = ProductInfo[];
+
+export interface ProductInfo {
+  id: bigint;
+  cid: Address;
+  price: bigint;
+  seller: Address;
+  timestamp: number;
 }

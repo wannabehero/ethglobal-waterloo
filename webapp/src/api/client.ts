@@ -1,5 +1,5 @@
 import { Address } from 'viem';
-import { EbayItemData, EbayItemResponse } from './types';
+import { EbayItemData, EbayItemResponse, ProductInfo, ProductInfoResponse } from './types';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -60,4 +60,15 @@ export async function getEbayItemData(itemUrl: string): Promise<EbayItemData> {
     .then((res) => res.json());
 
   return response[0];
+}
+
+export async function fetchProducts(): Promise<ProductInfo[]> {
+  const items: ProductInfoResponse = await fetch(`${BASE_URL}/product/getAllProducts`)
+    .then((res) => res.json());
+  return items.map((item) => ({
+    ...item,
+    id: BigInt(item.id),
+    price: BigInt(item.price),
+    timestamp: Number(item.timestamp),
+  }));
 }
