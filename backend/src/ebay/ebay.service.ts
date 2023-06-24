@@ -37,7 +37,7 @@ export class EbayService {
     }
 
     async getEbayMerchantData(merchantUrl: string): Promise<string> {
-        merchantUrl = 'https://www.ebay.com/str/perfumepoodle';
+
 
         const merchantData = await puppeteer.launch({ headless: true }).then(async browser => {
             const page = await browser.newPage();
@@ -58,10 +58,23 @@ export class EbayService {
             return value;
         })
 
+        const input = "100% Positive feedback3.3K Items sold277 Followers";
+        const regex = /(\d+%)(?:.*)feedback(.*)\sItems/;
+        const match = input.match(regex);
 
-        console.log(`merchant data: ${merchantData}`);
+        
+        const positiveFeedback = match[1];
+        const itemsSold = match[2];
+        console.log(positiveFeedback); 
+        console.log(itemsSold);
+        
 
-        return String(merchantData);
+        const ebayMerchantData = {
+            "positiveFeedback": positiveFeedback,
+            "itemsSold": itemsSold
+        }
+
+        return JSON.stringify(ebayMerchantData);
     
     }
 }

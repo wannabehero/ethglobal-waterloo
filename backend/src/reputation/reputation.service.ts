@@ -33,7 +33,7 @@ export class ReputationService {
     async getCountOfTransactions(walletAddress: string): Promise<number> {
         const query = `{
             ethereum: TokenTransfers(
-              input: {filter: {_or: [{from: {_eq: "${walletAddress}"}}, {to: {_eq: "bayka.eth"}}]}, blockchain: ethereum, limit: 200}
+              input: {filter: {_or: [{from: {_eq: "${walletAddress}"}}, {to: {_eq: "${walletAddress}"}}]}, blockchain: ethereum, limit: 200}
             ) {
               TokenTransfer {
                 transactionHash
@@ -41,7 +41,7 @@ export class ReputationService {
               }
             },
             polygon: TokenTransfers(
-              input: {filter: {_or: [{from: {_eq: "${walletAddress}"}}, {to: {_eq: "bayka.eth"}}]}, blockchain: polygon, limit: 200}
+              input: {filter: {_or: [{from: {_eq: "${walletAddress}"}}, {to: {_eq: "${walletAddress}"}}]}, blockchain: polygon, limit: 200}
             ) {
               TokenTransfer {
                 transactionHash
