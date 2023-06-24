@@ -15,6 +15,12 @@ contract ZBay is ERC2771Context, Ownable {
     error NotImplemented();
 
     event ProductCreated(uint256 indexed id, address indexed seller, uint256 indexed price, bytes32 cid);
+    event ProductPurchased(uint256 indexed id, address indexed buyer);
+    event ProductDispatched(uint256 indexed id);
+    event ProductDelivered(uint256 indexed id);
+    event ProductDisputed(uint256 indexed id);
+    event ProductResolved(uint256 indexed id, bool indexed successfully);
+    event ProductCancelled(uint256 indexed id);
 
     /// @dev Will be used to resolve disputes on the delivery
     OptimisticOracleV3Interface private _disputeOracle;
@@ -84,12 +90,12 @@ contract ZBay is ERC2771Context, Ownable {
             buyer: address(0),
             state: ZBayProductState.Created,
             attestation: "",
-            assestionId: bytes32(0)
+            assertionId: bytes32(0)
         });
 
-        emit ProductCreated(_counter, _msgSender(), price, cid);
-
         _counter += 1;
+
+        emit ProductCreated(_counter, _msgSender(), price, cid);
     }
 
     /// @dev purchase a product
@@ -106,6 +112,24 @@ contract ZBay is ERC2771Context, Ownable {
 
         product.state = ZBayProductState.Paid;
         product.buyer = _msgSender();
+
+        emit ProductPurchased(id, _msgSender());
+    }
+
+    function cancel(uint256 id) external {
+        ZBayProduct storage product = _products[id];
+
+        require(product.seller == _msgSender(), "Only seller can cancel");
+        require(product.state == ZBayProductState.Created || product.state == ZBayProductState.Paid, "Invalid state");
+
+        product.state = ZBayProductState.Cancelled;
+
+        if (product.state == ZBayProductState.Paid) {
+            uint256 amountToUnlock = product.price * DEFAULT_SECURITY_MULTIPLIER / 100;
+            _token.transfer(product.buyer, amountToUnlock);
+        }
+
+        emit ProductCancelled(id);
     }
 
     /// @dev dispatch a product
@@ -130,7 +154,7 @@ contract ZBay is ERC2771Context, Ownable {
             " at price ",
             product.price
         );
-        product.assestionId = _disputeOracle.assertTruth(
+        product.assertionId = _disputeOracle.assertTruth(
             assertedClaim,
             _msgSender(),
             address(this), // callback recipient
@@ -141,7 +165,9 @@ contract ZBay is ERC2771Context, Ownable {
             "ASSERT_TRUTH",
             bytes32(0)
         );
-        _assertionToProductId[product.assestionId] = product.id;
+        _assertionToProductId[product.assertionId] = product.id;
+
+        emit ProductDispatched(id);
     }
 
     /// @dev confirm delivery of a product
@@ -151,17 +177,11 @@ contract ZBay is ERC2771Context, Ownable {
         require(product.buyer == _msgSender(), "Only buyer can confirm delivery");
         require(product.state == ZBayProductState.Dispatched, "Invalid state");
 
-        product.state = ZBayProductState.Delivered;
         // 0 is reserved for the attestation verifier
         bool verified = IZBayVerifier(_verifiers[0]).verify(proof);
         require(verified, "Invalid proof");
 
-        uint256 amountToRelease = product.price * DEFAULT_SECURITY_MULTIPLIER / 100 - product.price;
-        uint256 amountToTreasury = product.price * DEFAULT_TREASURY_PERCENT / 10000; // will be left at the contract
-        uint256 amountToSeller = product.price - amountToTreasury;
-
-        _token.transfer(product.seller, amountToSeller);
-        _token.transfer(_msgSender(), amountToRelease);
+        _confirmDelivery(product);
     }
 
     /// @dev Dispute delivery
@@ -172,7 +192,9 @@ contract ZBay is ERC2771Context, Ownable {
         require(product.state == ZBayProductState.Dispatched, "Invalid state");
 
         product.state = ZBayProductState.Disputed;
-        _disputeOracle.disputeAssertion(product.assestionId, _msgSender());
+        _disputeOracle.disputeAssertion(product.assertionId, _msgSender());
+
+        emit ProductDisputed(id);
     }
 
     /// @dev UMA assertions callback
@@ -181,16 +203,30 @@ contract ZBay is ERC2771Context, Ownable {
 
         uint256 productId = _assertionToProductId[assertionId];
         ZBayProduct storage product = _products[productId];
-        require(product.state == ZBayProductState.Dispatched, "Invalid state");
+        require(product.state == ZBayProductState.Dispatched || product.state == ZBayProductState.Disputed, "Invalid state");
 
         if (assertedTruthfully) {
-            // TODO: assume correct sell
+            _confirmDelivery(product);
+            emit ProductResolved(productId, true);
         } else {
-            // TODO: refund
             product.state = ZBayProductState.Cancelled;
             uint256 amountToUnLock = product.price * DEFAULT_SECURITY_MULTIPLIER / 100;
             _token.transfer(product.buyer, amountToUnLock);
+            emit ProductResolved(productId, false);
         }
+    }
+
+    function _confirmDelivery(ZBayProduct storage product) internal {
+        product.state = ZBayProductState.Delivered;
+
+        uint256 amountToRelease = product.price * DEFAULT_SECURITY_MULTIPLIER / 100 - product.price;
+        uint256 amountToTreasury = product.price * DEFAULT_TREASURY_PERCENT / 10000; // will be left at the contract
+        uint256 amountToSeller = product.price - amountToTreasury;
+
+        _token.transfer(product.seller, amountToSeller);
+        _token.transfer(product.buyer, amountToRelease);
+
+        emit ProductDelivered(product.id);
     }
 
     /// @dev required override

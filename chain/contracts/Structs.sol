@@ -20,5 +20,5 @@ struct ZBayProduct {
     address buyer;
     ZBayProductState state;
     bytes attestation;
-    bytes32 assestionId;
+    bytes32 assertionId;
 }
