@@ -1,6 +1,16 @@
 import { Injectable } from '@nestjs/common';
 
-import { fetchQuery, fetchQueryWithPagination } from "@airstack/airstack-react";
+
+import { ApolloClient, InMemoryCache, gql } from "@apollo/client/core"
+
+const AIRSTACK_ENDPOINT = "https://api.airstack.xyz/gql"
+const AIRSTACK_API_KEY = "3119c035cfa24462b8cca0ef4a89772f"
+
+const client = new ApolloClient({
+    uri: AIRSTACK_ENDPOINT,
+    cache: new InMemoryCache(),
+    headers: { Authorization: AIRSTACK_API_KEY },
+})
 
 @Injectable()
 export class ReputationService {
@@ -31,7 +41,7 @@ export class ReputationService {
     }
 
     async getCountOfTransactions(walletAddress: string): Promise<number> {
-        const query = `{
+        const query = gql`{
             ethereum: TokenTransfers(
               input: {filter: {_or: [{from: {_eq: "${walletAddress}"}}, {to: {_eq: "${walletAddress}"}}]}, blockchain: ethereum, limit: 200}
             ) {
@@ -50,13 +60,13 @@ export class ReputationService {
             }
           }`;
 
-        const { data, error } = await fetchQuery(query);
+        const response = await client.query({query});
 
-        return data.ethereum.TokenTransfer.length + data.polygon.TokenTransfer.length;
+        return response.data.ethereum.TokenTransfer.length + response.data.polygon.TokenTransfer.length;
     }
 
     async getDateOfFirstTransaction(walletAddress: string): Promise<Date> {
-        const query = `{
+        const query = gql`{
             ethereum: TokenTransfers(
               input: {
                 filter: {
@@ -95,9 +105,9 @@ export class ReputationService {
               }
           }`;
         
-        const { data, error } = await fetchQuery(query);
-        const dateEthereum = new Date(data.ethereum.TokenTransfer[0].blockTimestamp);
-        const datePolygon = new Date(data.polygon.TokenTransfer[0].blockTimestamp);
+        const response = await client.query({query});
+        const dateEthereum = new Date(response.data.ethereum.TokenTransfer[0].blockTimestamp);
+        const datePolygon = new Date(response.data.polygon.TokenTransfer[0].blockTimestamp);
 
         
         return dateEthereum < datePolygon ? dateEthereum : datePolygon;
@@ -106,7 +116,7 @@ export class ReputationService {
     }
 
     async getPOAPs(walletAddress: string): Promise<number> {
-        const query = `{
+        const query = gql`{
             Poaps(
               input: {filter: {owner: {_eq: "${walletAddress}"}}, blockchain: ALL, limit: 200}) 
               {
@@ -135,9 +145,9 @@ export class ReputationService {
             }
           }`;
 
-        const { data, error } = await fetchQuery(query);
+        const response = await client.query({query});
 
-        return data.Poaps?.length ? data.Poaps.length : 0;
+        return response.data.Poaps?.length ? response.data.Poaps.length : 0;
     
     }
 }
