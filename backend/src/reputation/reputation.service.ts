@@ -24,7 +24,7 @@ export class ReputationService {
         
         const reputationTransactions = numberOfTransactions * 0.5;
 
-        const reputation = reputationAge + reputationPOAPs + reputationTransactions;
+        const reputation = Math.round(reputationAge + reputationPOAPs + reputationTransactions);
         console.log(reputation);
 
         return String(reputation);
