@@ -6,7 +6,7 @@ import { ERC2771Context, Context } from "@openzeppelin/contracts/metatx/ERC2771C
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { OptimisticOracleV3Interface } from "./vendor/OptimisticOracleV3Interface.sol";
 
-import "./Verifiers/IZBayVerifier.sol";
+import "./verifiers/IZBayVerifier.sol";
 import "./Structs.sol";
 
 contract ZBay is ERC2771Context, Ownable {
@@ -63,6 +63,10 @@ contract ZBay is ERC2771Context, Ownable {
     /// @dev get product details
     function getProduct(uint256 id) external view returns (ZBayProduct memory) {
         return _products[id];
+    }
+
+    function getScore(address account) external view returns (uint32) {
+        return _verificationScore[account];
     }
 
     /// @dev verify
