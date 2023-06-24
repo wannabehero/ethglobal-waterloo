@@ -53,6 +53,8 @@ export class EbayService {
             await page.goto(merchantUrl);
           
             await page.solveRecaptchas();
+
+            await Promise.all([page.waitForNavigation()]);
             
             const html = await page.content();
             //save html to file
