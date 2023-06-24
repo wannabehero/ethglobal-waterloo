@@ -2,14 +2,15 @@ import { VStack } from '@chakra-ui/react';
 import useProducts from '../hooks/useProducts';
 import { useAccount, useChainId, usePublicClient } from 'wagmi';
 import ProductCard from '../components/ProductCard';
-import { ZBayProduct, ZBayProductState } from '../types/product';
+import { ZBayProduct, ZBayProductState, ZBayProductWithMetadata } from '../types/product';
 import { useCallback, useEffect, useState } from 'react';
-import { encodeAbiParameters, formatEther } from 'viem';
+import { Address, encodeAbiParameters, formatEther } from 'viem';
 import { useZBayConfirmDelivery, useZBayPurchase } from '../web3/contracts';
 import { ZBAY_DEPLOMENTS } from '../web3/consts';
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit';
 import DispatchModal, { DispatchData } from '../components/DispatchModal';
 import { fetchReputationCoef, proveAttestation } from '../api/client';
+import ChatModal from '../components/ChatModal';
 
 const Buyer = () => {
   const { address } = useAccount();
@@ -22,6 +23,7 @@ const Buyer = () => {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [confirmingProduct, setConfirmingProduct] = useState<ZBayProduct>();
   const [reputationCoef, setReputationCoef] = useState<number>(1.5);
+  const [messagingWith, setMessagingWith] = useState<{ companion: Address, product: ZBayProductWithMetadata }>();
 
   const { writeAsync: purchaseProduct } = useZBayPurchase({
     address: ZBAY_DEPLOMENTS[chainId],
@@ -36,6 +38,10 @@ const Buyer = () => {
   const onConfirm = (product: ZBayProduct) => {
     setIsConfirmModalOpen(true);
     setConfirmingProduct(product);
+  };
+
+  const onMessage = (product: ZBayProductWithMetadata) => {
+    setMessagingWith({ companion: product.seller, product });
   };
 
   const handleBuy = useCallback(async (product: ZBayProduct) => {
@@ -152,6 +158,8 @@ const Buyer = () => {
               onAction={onAction}
               status={status}
               caption={`Also ${formatEther(lockedValue)} will be locked (${reputationCoef}x)`}
+              showMessageButton={product.buyer === address}
+              onMessage={onMessage}
             />
            );
           }
@@ -168,6 +176,18 @@ const Buyer = () => {
             actionTitle="Confirm"
             allowSecretGeneration={false}
             title="Confirm the delivery"
+          />
+        )
+      }
+      {
+        messagingWith && (
+          <ChatModal
+            title={messagingWith.product.metadata.title.slice(0, 32) + '...'}
+            companion={messagingWith.companion}
+            isOpen={!!messagingWith}
+            onClose={() => setMessagingWith(undefined)}
+            isLoading={false}
+            counterparty="Seller"
           />
         )
       }

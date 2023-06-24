@@ -72,10 +72,10 @@ async function verification2() {
 
 async function mint() {
   const token = await ethers.getContractAt("MockToken", "0x9FBf4E70Aecfa43dd1B00dE828FDf68E903a6F25");
-  await token.mint("0xE432a8314d971441Ad7700e8b45d66cC326CE517", ethers.utils.parseEther("10000"));
+  await token.mint("0x65BD86F02341D223835761A62E5C30201af5f4b2", ethers.utils.parseEther("10000"));
 }
 
-verification2().catch((error) => {
+mint().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });

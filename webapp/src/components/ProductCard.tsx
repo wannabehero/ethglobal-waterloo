@@ -1,5 +1,6 @@
-import { Button, Card, CardBody, CardFooter, Heading, Highlight, Image, Stack, Text, VStack } from '@chakra-ui/react';
+import { Button, Card, CardBody, CardFooter, HStack, Heading, Highlight, IconButton, Image, Stack, Text, VStack } from '@chakra-ui/react';
 import { ZBayProductWithMetadata } from '../types/product';
+import { ChatIcon } from '@chakra-ui/icons';
 
 interface ProductCardProps {
   product: ZBayProductWithMetadata;
@@ -9,9 +10,12 @@ interface ProductCardProps {
   isLoading?: boolean;
   actionTitle?: string;
   onAction?: (product: ZBayProductWithMetadata) => void;
+
+  showMessageButton: boolean;
+  onMessage: (product: ZBayProductWithMetadata) => void;
 }
 
-const ProductCard = ({ product, caption, onAction, actionTitle, isLoading, status }: ProductCardProps) => {
+const ProductCard = ({ onMessage, showMessageButton, product, caption, onAction, actionTitle, isLoading, status }: ProductCardProps) => {
   return (
     <Card
       direction={{ base: 'column', sm: 'row' }}
@@ -51,29 +55,42 @@ const ProductCard = ({ product, caption, onAction, actionTitle, isLoading, statu
           </VStack>
         </CardBody>
 
-        {
-          actionTitle && onAction && (
-            <CardFooter>
-              <VStack align="flex-start">
-                <Button
-                  variant="solid"
-                  colorScheme="orange"
-                  onClick={() => onAction(product)}
-                  isLoading={isLoading}
-                >
-                  {actionTitle}
-                </Button>
-                {
-                  caption && (
-                    <Text fontSize="sm" color="gray.400">
-                      {caption}
-                    </Text>
-                  )
-                }
-              </VStack>
-            </CardFooter>
-          )
-        }
+        <CardFooter>
+          <VStack align="flex-start">
+            <HStack>
+              {
+                actionTitle && onAction && (
+                  <Button
+                    variant="solid"
+                    colorScheme="orange"
+                    onClick={() => onAction(product)}
+                    isLoading={isLoading}
+                  >
+                    {actionTitle}
+                  </Button>
+                )
+              }
+              {
+                showMessageButton && (
+                  <IconButton
+                    aria-label="Send message"
+                    icon={<ChatIcon />}
+                    onClick={() => onMessage(product)}
+                    colorScheme="blue"
+                    rounded="xl"
+                  />
+                )
+              }
+            </HStack>
+            {
+              actionTitle && caption && (
+                <Text fontSize="sm" color="gray.400">
+                  {caption}
+                </Text>
+              )
+            }
+        </VStack>
+        </CardFooter>
       </Stack>
     </Card>
   )

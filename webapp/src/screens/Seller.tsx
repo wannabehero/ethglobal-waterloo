@@ -6,14 +6,15 @@ import CreateProductModal from '../components/CreateProductModal';
 import { useCallback, useEffect, useState } from 'react';
 import { ZBayProduct, ZBayProductMetadata, ZBayProductState, ZBayProductWithMetadata } from '../types/product';
 import { store } from '../web3/storage';
-import { useZBayCreateProduct, useZBayDispatch, useZBayGetScore, useZBaySubmitVerification, useZBayWrite } from '../web3/contracts';
+import { useZBayCreateProduct, useZBayDispatch, useZBayGetScore, useZBaySubmitVerification } from '../web3/contracts';
 import { ZBAY_DEPLOMENTS } from '../web3/consts';
 import { Address, parseEther } from 'viem';
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit';
 import DispatchModal, { DispatchData } from '../components/DispatchModal';
 import { generateAttestation, proveReputation } from '../api/client';
-import { ensClient } from '../web3/wallet';
 import { AuthType, ClaimType, useSismoConnect } from '@sismo-core/sismo-connect-react';
+import ChatModal from '../components/ChatModal';
+// import { ensClient } from '../web3/wallet';
 
 const SISMO_CONFIG = {
   config: {
@@ -35,7 +36,7 @@ const Seller = () => {
   const [isDispatching, setIsDispatching] = useState(false);
   const [isLoadingEbayVerification, setIsLoadingEbayVerification] = useState(false);
   const [isLoadingSismoVerification, setIsLoadingSismoVerification] = useState(false);
-
+  const [messagingWith, setMessagingWith] = useState<{ companion: Address, product: ZBayProductWithMetadata }>();
   const { sismoConnect, responseBytes: sismoProof } = useSismoConnect(SISMO_CONFIG);
 
   const { writeAsync: createProduct } = useZBayCreateProduct({
@@ -66,6 +67,10 @@ const Seller = () => {
   const onDispatch = (product: ZBayProduct) => {
     setIsDispatchModelOpen(true);
     setDispatchingProduct(product);
+  };
+
+  const onMessage = (product: ZBayProductWithMetadata) => {
+    setMessagingWith({ companion: product.buyer, product });
   };
 
   const handleCreate = useCallback(async (data: ZBayProductMetadata) => {
@@ -276,6 +281,8 @@ const Seller = () => {
               actionTitle={actionTitle}
               onAction={onAction}
               status={status}
+              showMessageButton={product.seller === address && product.state > ZBayProductState.Created}
+              onMessage={onMessage}
             />
           );
         })}
@@ -297,6 +304,18 @@ const Seller = () => {
             actionTitle="Dispatch"
             allowSecretGeneration={true}
             title="Confirm the dispatch"
+          />
+        )
+      }
+      {
+        messagingWith && (
+          <ChatModal
+            title={messagingWith.product.metadata.title.slice(0, 16) + '...'}
+            companion={messagingWith.companion}
+            isOpen={!!messagingWith}
+            onClose={() => setMessagingWith(undefined)}
+            isLoading={false}
+            counterparty="Buyer"
           />
         )
       }
