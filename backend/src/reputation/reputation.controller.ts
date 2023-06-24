@@ -5,7 +5,6 @@ import { ReputationService } from './reputation.service';
 export class ReputationController {
   constructor(private readonly svc: ReputationService) {}
 
-
   @Get('getReputation')
   async getReputation(@Query('walletAddress') walletAddress: string): Promise<string> {
     console.log(`in reputation controller: ${walletAddress}`);

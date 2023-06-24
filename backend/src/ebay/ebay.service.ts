@@ -62,11 +62,11 @@ export class EbayService implements OnModuleDestroy {
     console.log(memberSinceRaw);
 
     const match1 = merchantDataRaw.match(/(\d+%)(?:.*)feedback(.*)\sItems/);
-    const positiveFeedback = match1 ? match1[1] : "0%";
-    const itemsSold = match1 ? match1[2] : "0";
+    const positiveFeedback = match1 ? match1[1] : '0%';
+    const itemsSold = match1 ? match1[2] : '0';
 
     const match2 = memberSinceRaw.match(/since:(.*\d)/);
-    const memberSinceDate = match2 ? new Date(match2[1]) : "N/A";
+    const memberSinceDate = match2 ? new Date(match2[1]) : 'N/A';
     console.log(memberSinceDate);
 
     console.log(positiveFeedback);

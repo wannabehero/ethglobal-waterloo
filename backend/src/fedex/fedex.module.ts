@@ -6,5 +6,4 @@ import { FedexController } from './fedex.controller';
   providers: [FedexService],
   controllers: [FedexController],
 })
-
 export class FedexModule {}
