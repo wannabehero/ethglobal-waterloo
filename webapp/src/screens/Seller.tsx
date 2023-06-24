@@ -6,12 +6,13 @@ import CreateProductModal from '../components/CreateProductModal';
 import { useCallback, useState } from 'react';
 import { ZBayProduct, ZBayProductMetadata, ZBayProductState, ZBayProductWithMetadata } from '../types/product';
 import { store } from '../web3/storage';
-import { useZBayCreateProduct, useZBayDispatch } from '../web3/contracts';
+import { useZBayCreateProduct, useZBayDispatch, useZBayGetScore, useZBaySubmitVerification } from '../web3/contracts';
 import { ZBAY_DEPLOMENTS } from '../web3/consts';
 import { parseEther } from 'viem';
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit';
 import DispatchModal, { DispatchData } from '../components/DispatchModal';
-import { generateAttestation } from '../api/client';
+import { generateAttestation, proveReputation } from '../api/client';
+import { ensClient } from '../web3/wallet';
 
 const Seller = () => {
   const { address } = useAccount();
@@ -25,6 +26,7 @@ const Seller = () => {
   const walletClient = useWalletClient();
   const [isCreating, setIsCreating] = useState(false);
   const [isDispatching, setIsDispatching] = useState(false);
+  const [isLoadingEbayVerification, setIsLoadingEbayVerification] = useState(false);
 
   const { writeAsync: createProduct } = useZBayCreateProduct({
     address: ZBAY_DEPLOMENTS[chainId],
@@ -34,6 +36,17 @@ const Seller = () => {
   const { writeAsync: dispatchProduct } = useZBayDispatch({
     address: ZBAY_DEPLOMENTS[chainId],
     gas: 3000000n,
+  });
+
+  const { writeAsync: submitVerification } = useZBaySubmitVerification({
+    address: ZBAY_DEPLOMENTS[chainId],
+    gas: 3000000n,
+  })
+
+  const { data: score, refetch: reloadScore } = useZBayGetScore({
+    address: ZBAY_DEPLOMENTS[chainId],
+    args: address ? [address] : undefined,
+    enabled: !!address
   });
 
   const onCreate = () => {
@@ -110,8 +123,62 @@ const Seller = () => {
     return true;
   }, [addRecentTransaction, dispatchProduct, publicClient, walletClient, refreshProducts]);
 
+  const handleEbayReputation = useCallback(async () => {
+    if (!address) {
+      return;
+    }
+
+    setIsLoadingEbayVerification(true);
+    try {
+      // TODO: get ens name
+      // console.log(await ensClient.getEnsName({ address }));
+      const account = 'vlkas-56';
+
+      const { proof, args } = await proveReputation(account);
+      const tx = await submitVerification({
+        args: [1n, proof, args],
+      });
+      addRecentTransaction({
+        hash: tx.hash,
+        description: 'Submitting verification'
+      });
+      await publicClient.waitForTransactionReceipt(tx);
+      reloadScore();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoadingEbayVerification(false);
+    }
+
+  }, [address, submitVerification, reloadScore, addRecentTransaction, setIsLoadingEbayVerification, publicClient]);
+
   return (
     <VStack spacing="4" align="stretch">
+      {
+        score !== undefined && score < 300 && (
+          <VStack align="stretch">
+            <Text fontSize="md">
+              My reputation score: {score}
+            </Text>
+            <HStack>
+              {
+                (score === 0 || score === 200) && (
+                  <Button colorScheme="orange" rounded="xl" isLoading={isLoadingEbayVerification} onClick={handleEbayReputation}>
+                    Import eBay reputation
+                  </Button>
+                )
+              }
+              {
+                (score === 0 || score === 100) && (
+                  <Button colorScheme="purple" rounded="xl">
+                    Sismo Connect
+                  </Button>
+                )
+              }
+            </HStack>
+          </VStack>
+        )
+      }
       <HStack>
         <Text as="b" fontSize="xl">
           My Products

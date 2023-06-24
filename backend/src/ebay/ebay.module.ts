@@ -23,5 +23,6 @@ import { Browser } from 'puppeteer';
     EbayService,
   ],
   controllers: [EbayController],
+  exports: [EbayService],
 })
 export class EbayModule {}

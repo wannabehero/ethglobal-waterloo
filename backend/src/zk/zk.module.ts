@@ -3,8 +3,10 @@ import { buildMimcSponge } from 'circomlibjs';
 import { ZkService } from './zk.service';
 import { ZkController } from './zk.controller';
 import { MIMC } from './consts';
+import { EbayModule } from '../ebay/ebay.module';
 
 @Module({
+  imports: [EbayModule],
   providers: [
     {
       provide: MIMC,
