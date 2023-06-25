@@ -8,7 +8,7 @@ import { ZBayProduct, ZBayProductMetadata, ZBayProductState, ZBayProductWithMeta
 import { store } from '../web3/storage';
 import { useZBayCreateProduct, useZBayDispatch, useZBayGetScore, useZBaySubmitVerification } from '../web3/contracts';
 import { ZBAY_DEPLOMENTS } from '../web3/consts';
-import { Address, parseEther } from 'viem';
+import { Address, encodeAbiParameters, parseEther } from 'viem';
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit';
 import DispatchModal, { DispatchData } from '../components/DispatchModal';
 import { generateAttestation, proveReputation } from '../api/client';
@@ -170,17 +170,16 @@ const Seller = () => {
   }, [address, submitVerification, reloadScore, addRecentTransaction, setIsLoadingEbayVerification, publicClient]);
 
   const onSismoConnect = () => {
-    // if (!address) {
-    //   return;
-    // }
+    if (!address) {
+      return;
+    }
 
     setIsLoadingSismoVerification(true);
 
     sismoConnect.request({
       auth: {authType: AuthType.VAULT},
       claim: {groupId: '0x1cde61966decb8600dfd0749bd371f12', value: 15, claimType: ClaimType.GTE},
-      // TODO: add signature
-      // signature: { message: encodeAbiParameters([{ type: 'address' }], [address]) },
+      signature: { message: encodeAbiParameters([{ type: 'address' }], [address]) },
     });
   };
 
@@ -193,7 +192,7 @@ const Seller = () => {
       setIsLoadingSismoVerification(true);
       try {
         const tx = await submitVerification({
-          args: [2n, proof, []],
+          args: [2n, proof, [BigInt(walletClient.account.address)]],
         });
         addRecentTransaction({
           hash: tx.hash,

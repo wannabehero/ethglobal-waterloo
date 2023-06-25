@@ -16,7 +16,7 @@ contract ZBaySismoVerifier is IZBayVerifier, SismoConnect {
         SismoConnect(buildConfig(appId_))
     {}
 
-    function verify(bytes calldata proof, uint256[] calldata) external returns (bool) {
+    function verify(bytes calldata proof, uint256[] calldata signals) external returns (bool) {
         SismoConnectVerifiedResult memory result = verify({
             auth: buildAuth({authType: AuthType.VAULT}),
             responseBytes: proof,
@@ -25,7 +25,8 @@ contract ZBaySismoVerifier is IZBayVerifier, SismoConnect {
                 groupId: 0x1cde61966decb8600dfd0749bd371f12,
                 claimType: ClaimType.GTE,
                 value: 15
-            })
+            }),
+            signature: buildSignature({ message: abi.encode(address(uint160(signals[0]))) })
         });
 
         if (result.claims.length == 0) {
