@@ -11,6 +11,12 @@ export class ProductController {
     return this.svc.getProductsByMerchant(merchantId);
   }
 
+  @Get('getProductById')
+  async getProductById(@Query('productId') productId: string) {
+    console.log(`in get product by id controller: ${productId}`);
+    return this.svc.getProductById(productId);
+  }
+
   @Get('getAllProducts')
   async getAllProducts(@Query('chainId') chainId: number) {
     console.log(`in get all products list controller:`);
