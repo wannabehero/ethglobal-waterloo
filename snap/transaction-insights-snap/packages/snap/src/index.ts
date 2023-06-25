@@ -52,9 +52,9 @@ export const onTransaction: OnTransactionHandler = async ({ transaction }) => {
     content: panel([
       heading('Merchant Reputation'),
       text(
-        `items sold: ${reputation.itemsSold}
-        positive feedback: ${reputation.positiveFeedback}
-        member since: ${yyyymmdd(reputation.memberSinceDate)}`,
+        `Items sold: ${reputation.itemsSold}
+        Positive feedback: ${reputation.positiveFeedback}
+        Member since: ${yyyymmdd(reputation.memberSinceDate)}`,
       ),
     ]),
   };
