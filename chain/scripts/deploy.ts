@@ -71,20 +71,33 @@ async function verification() {
   await token.mint("0x030D144c32B519B497e756F488Fdc98747201029", ethers.utils.parseEther("10000")).then((tx) => tx.wait());
 }
 
-async function ver2() {
-  const ZBaySismoVerifier = await ethers.getContractFactory("ZBaySismoVerifier");
-  const zBaySismoVerifier = await ZBaySismoVerifier.deploy("0x10f9c1b389261a5bbc0ccd0c094d1e78");
-  console.log("ZBaySismoVerifier deployed to:", zBaySismoVerifier.address);
+async function zbayOnly() {
+  const token = await ethers.getContractAt("MockToken", "0xd8770Db54Fe49B82Aa93c308284Ec40a43a3BD54");
+  const ZBay = await ethers.getContractFactory("ZBay");
+  const zbay = await ZBay.deploy(
+    ethers.constants.AddressZero, // trusted forwarer
+    // ethers.constants.AddressZero, // oracle
+    "0x9923D42eF695B5dd9911D05Ac944d4cAca3c4EAB", // oracle for goerli
+    token.address,
+  );
+  await zbay.deployed();
+  console.log("ZBay deployed to:", zbay.address);
 
-  const zbay = await ethers.getContractAt("ZBay", "0x93387F4cc9EC76233272D2a38Cc77a0B729925a6");
   await zbay.updateVerifiers(
-    [2],
-    [zBaySismoVerifier.address],
-    [200],
+    [0, 1, 2],
+    [
+      "0x2D3Adb7DA6e66166871c8aA37CA14A1452A85f27", // attestation
+      "0xd3830D92a58398a55A39517035C1E221622d5CB9", // reputation
+      "0xbe1Db7C207E98891976B66aF6418CB0AAe1730F8", // sismo
+    ],
+    [0, 100, 200],
   ).then((tx) => tx.wait());
+
+  await token.mint("0xE432a8314d971441Ad7700e8b45d66cC326CE517", ethers.utils.parseEther("10000")).then((tx) => tx.wait());
+  await token.mint("0x030D144c32B519B497e756F488Fdc98747201029", ethers.utils.parseEther("10000")).then((tx) => tx.wait());
 }
 
-main().catch((error) => {
+zbayOnly().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });

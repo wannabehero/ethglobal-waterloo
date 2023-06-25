@@ -19,8 +19,8 @@ export class ZkService {
     const payload = {
       feedbackSource: positiveFeedback,
       itemsSource: itemsSold,
-      feedbackTarget: 80,
-      itemsTarget: 0,
+      feedbackTarget: 95,
+      itemsTarget: 100,
     };
 
     const { proof, publicSignals } = await snarkjs.plonk.fullProve(

@@ -69,6 +69,10 @@ contract ZBay is ERC2771Context, Ownable, OptimisticOracleV3CallbackRecipientInt
         return _verificationScore[account];
     }
 
+    function token() external view returns (IERC20) {
+        return _token;
+    }
+
     /// @dev verify
     function submitVerification(uint256 verifierId, bytes calldata proof, uint256[] calldata signals) external {
         address verifierAddress = _verifiers[verifierId];

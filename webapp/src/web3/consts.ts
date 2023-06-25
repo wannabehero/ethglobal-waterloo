@@ -1,10 +1,17 @@
+import deployments from '../../../chain/deployments.json';
 import { Address } from 'viem';
 import { gnosis, goerli, polygonMumbai } from 'wagmi/chains';
 
-export const ZBAY_DEPLOMENTS: Record<number, Address> = {
-  [polygonMumbai.id]: '0x93387F4cc9EC76233272D2a38Cc77a0B729925a6',
-  [goerli.id]: '0x278e18C83466D44b78b21d5d1EFd8ddb73033563',
-  [gnosis.id]: '0x278e18C83466D44b78b21d5d1EFd8ddb73033563',
-  // [polygonZkEvmTestnet.id]: '0x93387F4cc9EC76233272D2a38Cc77a0B729925a6',
-  // [lineaTestnet.id]: '0x278e18C83466D44b78b21d5d1EFd8ddb73033563',
-};
+function readDeployments() {
+  return [polygonMumbai.id, goerli.id, gnosis.id]
+    .map((id) => ({
+      chainId: id,
+      address: deployments[id].ZBay,
+    }))
+    .reduce((acc, val) => {
+      acc[val.chainId] = val.address as `0x${string}`;
+      return acc;
+    }, {} as Record<number, Address>);
+}
+
+export const ZBAY_DEPLOMENTS: Record<number, Address> = readDeployments();

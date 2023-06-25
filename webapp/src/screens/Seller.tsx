@@ -168,9 +168,9 @@ const Seller = () => {
 
     setIsLoadingEbayVerification(true);
     try {
-      // TODO: get ens name
       // console.log(await ensClient.getEnsName({ address }));
-      const account = 'vlkas-56';
+      // FIXME: get ens name, but using this for demo purposes
+      const account = 'perfumepoodle';
 
       const { proof, args } = await proveReputation(account);
       const tx = await submitVerification({
@@ -233,7 +233,7 @@ const Seller = () => {
         reloadScore();
         toast({
           title: 'Verified!',
-          description: "You've successfully verified you Gitcoin Passport",
+          description: "You've successfully verified your Gitcoin Passport",
           status: 'success',
         });
       } catch (err: any) {

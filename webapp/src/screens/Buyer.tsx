@@ -13,7 +13,11 @@ import { fetchReputationCoef, proveAttestation } from '../api/client';
 import ChatModal from '../components/ChatModal';
 import { RepeatIcon } from '@chakra-ui/icons';
 
-const Buyer = () => {
+interface BuyerProps {
+  onBalanceReload: () => void;
+}
+
+const Buyer = ({ onBalanceReload }: BuyerProps) => {
   const toast = useToast();
   const { address } = useAccount();
   const { products, refreshProducts } = useProducts({ buyer: address });
@@ -42,6 +46,10 @@ const Buyer = () => {
     setConfirmingProduct(product);
   };
 
+  const onDispute = (product: ZBayProduct) => {
+    console.log('Disputing', product.id);
+  };
+
   const onMessage = (product: ZBayProductWithMetadata) => {
     setMessagingWith({ companion: product.seller, product });
   };
@@ -59,6 +67,7 @@ const Buyer = () => {
       });
       await publicClient.waitForTransactionReceipt(tx);
       await refreshProducts();
+      onBalanceReload();
       toast({
         title: 'Purchased!',
         description: "You've successfully purchased the product",
@@ -74,7 +83,7 @@ const Buyer = () => {
     }
 
     setBuyingProduct(undefined);
-  }, [purchaseProduct, reputationCoef, addRecentTransaction, publicClient, refreshProducts, toast]);
+  }, [purchaseProduct, reputationCoef, addRecentTransaction, publicClient, refreshProducts, onBalanceReload, toast]);
 
   const handleConfirmDelivery = useCallback(async (data: DispatchData) => {
     console.log('Confirming delivery of', data.product.id);
@@ -96,6 +105,7 @@ const Buyer = () => {
       });
       await publicClient.waitForTransactionReceipt(tx);
       await refreshProducts();
+      onBalanceReload();
       toast({
         title: 'Confirmed!',
         description: "You've successfully confirmed the delivery",
@@ -115,7 +125,7 @@ const Buyer = () => {
 
     setIsConfirmModalOpen(false);
     return true;
-  }, [confirmDelivery, addRecentTransaction, publicClient, refreshProducts, toast]);
+  }, [confirmDelivery, addRecentTransaction, publicClient, refreshProducts, onBalanceReload, toast]);
 
   useEffect(() => {
     if (!address) {
@@ -145,10 +155,15 @@ const Buyer = () => {
           let status: string | undefined = undefined;
           let actionTitle: string | undefined = undefined;
           let onAction: ((product: ZBayProduct) => void) | undefined = undefined;
+          let secondaryActionTitle: string | undefined = undefined;
+          let onSecondaryAction: ((product: ZBayProduct) => void) | undefined = undefined;
+          let caption: string | undefined = undefined;
+          const lockedValue = product.price * (BigInt(Math.floor(reputationCoef * 100)) - 100n) / 100n;
           switch (product.state) {
             case ZBayProductState.Created:
               actionTitle = `Buy for USDC ${formatEther(product.price)}`;
               onAction = handleBuy;
+              caption = `Also ${formatEther(lockedValue)} will be locked (${reputationCoef}x)`;
               break;
             case ZBayProductState.Paid:
               if (product.buyer === address) {
@@ -159,6 +174,8 @@ const Buyer = () => {
               if (product.buyer === address) {
                 actionTitle = 'Confirm delivery';
                 onAction = onConfirm;
+                secondaryActionTitle = 'Dispute';
+                onSecondaryAction = onDispute;
               }
               break;
             case ZBayProductState.Delivered:
@@ -183,8 +200,6 @@ const Buyer = () => {
               break;
           }
 
-          const lockedValue = product.price * (BigInt(Math.floor(reputationCoef * 100)) - 100n) / 100n;
-
           return (
             <ProductCard
               key={`product-${address}-${product.id}`}
@@ -193,9 +208,11 @@ const Buyer = () => {
               actionTitle={actionTitle}
               onAction={onAction}
               status={status}
-              caption={`Also ${formatEther(lockedValue)} will be locked (${reputationCoef}x)`}
+              caption={caption}
               showMessageButton={product.buyer === address}
               onMessage={onMessage}
+              secondaryActionTitle={secondaryActionTitle}
+              onSecondaryAction={onSecondaryAction}
             />
            );
           }

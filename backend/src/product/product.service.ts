@@ -11,7 +11,7 @@ const clients = {
     uri: 'https://api.studio.thegraph.com/query/48370/zbay_goerli/version/latest',
     cache: new InMemoryCache(),
   }),
-  10: new ApolloClient({
+  100: new ApolloClient({
     uri: 'https://api.studio.thegraph.com/query/48370/zbay_gnosis/version/latest',
     cache: new InMemoryCache(),
   }),

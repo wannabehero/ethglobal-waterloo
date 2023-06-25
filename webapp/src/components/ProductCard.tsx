@@ -10,12 +10,14 @@ interface ProductCardProps {
   isLoading?: boolean;
   actionTitle?: string;
   onAction?: (product: ZBayProductWithMetadata) => void;
+  secondaryActionTitle?: string;
+  onSecondaryAction?: (product: ZBayProductWithMetadata) => void;
 
   showMessageButton: boolean;
   onMessage: (product: ZBayProductWithMetadata) => void;
 }
 
-const ProductCard = ({ onMessage, showMessageButton, product, caption, onAction, actionTitle, isLoading, status }: ProductCardProps) => {
+const ProductCard = ({ onMessage, secondaryActionTitle, onSecondaryAction, showMessageButton, product, caption, onAction, actionTitle, isLoading, status }: ProductCardProps) => {
   return (
     <Card
       direction={{ base: 'column', sm: 'row' }}
@@ -62,11 +64,23 @@ const ProductCard = ({ onMessage, showMessageButton, product, caption, onAction,
                 actionTitle && onAction && (
                   <Button
                     variant="solid"
-                    colorScheme="orange"
+                    colorScheme="green"
                     onClick={() => onAction(product)}
                     isLoading={isLoading}
                   >
                     {actionTitle}
+                  </Button>
+                )
+              }
+              {
+                secondaryActionTitle && onSecondaryAction && (
+                  <Button
+                    variant="solid"
+                    colorScheme="red"
+                    onClick={() => onSecondaryAction(product)}
+                    isLoading={isLoading}
+                  >
+                    {secondaryActionTitle}
                   </Button>
                 )
               }
