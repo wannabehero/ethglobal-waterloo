@@ -12,6 +12,10 @@ contract MockOptimisticOracle is OptimisticOracleV3Interface {
 
     }
 
+    function defaultCurrency() external view returns (IERC20) {
+        return IERC20(address(0));
+    }
+
     function assertTruthWithDefaults(bytes memory claim, address asserter) external returns (bytes32) {
         return bytes32(0);
     }

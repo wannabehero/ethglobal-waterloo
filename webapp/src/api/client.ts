@@ -85,8 +85,8 @@ export async function getEbayItemData(itemUrl: string): Promise<EbayItemData> {
   return response[0];
 }
 
-export async function fetchProducts(): Promise<ProductInfo[]> {
-  const items: ProductInfoResponse = await fetch(`${BASE_URL}/product/getAllProducts`)
+export async function fetchProducts(chainId: number): Promise<ProductInfo[]> {
+  const items: ProductInfoResponse = await fetch(`${BASE_URL}/product/getAllProducts?chainId=${chainId}`)
     .then((res) => res.json());
   return items.map((item) => ({
     ...item,

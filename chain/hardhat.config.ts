@@ -35,10 +35,15 @@ const config: HardhatUserConfig = {
       url: "https://rpc.gnosischain.com",
       accounts: [process.env.PRIVATE_KEY as string]
     },
+    goerli: {
+      url: "https://rpc.ankr.com/eth_goerli",
+      accounts: [process.env.PRIVATE_KEY as string]
+    },
   },
   etherscan: {
     apiKey: {
-      polygonMumbai: process.env.ETHERSCAN_KEY as string,
+      polygonMumbai: process.env.POLYGONSCAN_KEY as string,
+      goerli: process.env.ETHERSCAN_KEY as string,
     },
     customChains: [
       {

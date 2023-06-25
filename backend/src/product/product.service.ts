@@ -2,12 +2,16 @@ import { Injectable } from '@nestjs/common';
 
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client/core';
 
-const APIURL = 'https://api.studio.thegraph.com/query/48370/zbay/version/latest';
-
-const client = new ApolloClient({
-  uri: APIURL,
-  cache: new InMemoryCache(),
-});
+const clients = {
+  80001: new ApolloClient({
+    uri: 'https://api.studio.thegraph.com/query/48370/zbay/version/latest',
+    cache: new InMemoryCache(),
+  }),
+  5: new ApolloClient({
+    uri: 'https://api.studio.thegraph.com/query/48370/zbay_goerli/version/latest',
+    cache: new InMemoryCache(),
+  }),
+};
 
 export interface Product {
   id: string;
@@ -33,8 +37,8 @@ export class ProductService {
     return products;
   }
 
-  async getAllProducts() {
-    const products = await this.getProducts(null);
+  async getAllProducts(chainId: number) {
+    const products = await this.getProducts(null, chainId);
 
     console.log(products);
 
@@ -57,7 +61,7 @@ export class ProductService {
     return products;
   }
 
-  async getProducts(merchantId: string): Promise<Array<Product>> {
+  async getProducts(merchantId: string, chainId = 80001): Promise<Array<Product>> {
     let query = gql`
       {
         productCreateds {
@@ -82,7 +86,7 @@ export class ProductService {
                 }`;
     }
 
-    const response = await client.query({ query, fetchPolicy: 'no-cache' });
+    const response = await clients[chainId].query({ query, fetchPolicy: 'no-cache' });
     const products = response.data.productCreateds.map((product) => {
       return {
         id: product.ZBay_id,
@@ -96,7 +100,7 @@ export class ProductService {
     return products;
   }
 
-  async getProductsBought(buyerId: string): Promise<Array<ProductBought>> {
+  async getProductsBought(buyerId: string, chainId = 80001): Promise<Array<ProductBought>> {
     let query = gql`
       {
         productPurchaseds {
@@ -117,7 +121,7 @@ export class ProductService {
                 }`;
     }
 
-    const response = await client.query({ query });
+    const response = await clients[chainId].query({ query });
     const products = response.data.productPurchaseds.map((product) => {
       return {
         id: product.ZBay_id,

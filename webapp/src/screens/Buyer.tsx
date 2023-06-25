@@ -1,4 +1,4 @@
-import { VStack } from '@chakra-ui/react';
+import { HStack, IconButton, Spacer, Text, VStack } from '@chakra-ui/react';
 import useProducts from '../hooks/useProducts';
 import { useAccount, useChainId, usePublicClient } from 'wagmi';
 import ProductCard from '../components/ProductCard';
@@ -11,6 +11,7 @@ import { useAddRecentTransaction } from '@rainbow-me/rainbowkit';
 import DispatchModal, { DispatchData } from '../components/DispatchModal';
 import { fetchReputationCoef, proveAttestation } from '../api/client';
 import ChatModal from '../components/ChatModal';
+import { RepeatIcon } from '@chakra-ui/icons';
 
 const Buyer = () => {
   const { address } = useAccount();
@@ -91,8 +92,9 @@ const Buyer = () => {
       setIsConfirming(false);
     }
 
+    setIsConfirmModalOpen(false);
     return true;
-  }, [addRecentTransaction, confirmDelivery, publicClient, setIsConfirming, refreshProducts]);
+  }, [addRecentTransaction, confirmDelivery, publicClient, setIsConfirming, setIsConfirmModalOpen, refreshProducts]);
 
   useEffect(() => {
     if (!address) {
@@ -103,7 +105,20 @@ const Buyer = () => {
   }, [address]);
 
   return (
-    <>
+    <VStack spacing="4" align="stretch">
+      <HStack>
+        <Text as="b" fontSize="xl">
+          Available products
+        </Text>
+        <Spacer />
+        <IconButton
+          aria-label="Reload products"
+          icon={<RepeatIcon />}
+          variant="ghost"
+          rounded="full"
+          onClick={refreshProducts}
+        />
+      </HStack>
       <VStack spacing="4">
         {products.map((product) => {
           let status: string | undefined = undefined;
@@ -191,7 +206,7 @@ const Buyer = () => {
           />
         )
       }
-    </>
+    </VStack>
   );
 };
 

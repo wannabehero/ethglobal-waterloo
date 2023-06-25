@@ -14,7 +14,7 @@ const useProducts = (_: { buyer?: Address; seller?: Address } = {}) => {
   const publicClient = usePublicClient();
 
   const refreshProducts = useCallback(async () => {
-    await fetchProducts()
+    await fetchProducts(chainId)
       .then((products) => Promise.all([
         publicClient.multicall({
           contracts: products.map((prd) => ({

@@ -12,9 +12,9 @@ export class ProductController {
   }
 
   @Get('getAllProducts')
-  async getAllProducts() {
+  async getAllProducts(@Query('chainId') chainId: number) {
     console.log(`in get all products list controller:`);
-    return this.svc.getAllProducts();
+    return this.svc.getAllProducts(chainId);
   }
 
   @Get('getProductsByBuyer')

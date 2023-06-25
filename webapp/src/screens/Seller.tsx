@@ -1,4 +1,4 @@
-import { VStack, Text, HStack, Button, Spacer } from '@chakra-ui/react';
+import { VStack, Text, HStack, Button, Spacer, IconButton } from '@chakra-ui/react';
 import useProducts from '../hooks/useProducts';
 import { useAccount, useChainId, usePublicClient, useWalletClient } from 'wagmi';
 import ProductCard from '../components/ProductCard';
@@ -14,6 +14,7 @@ import DispatchModal, { DispatchData } from '../components/DispatchModal';
 import { generateAttestation, proveReputation } from '../api/client';
 import { AuthType, ClaimType, useSismoConnect } from '@sismo-core/sismo-connect-react';
 import ChatModal from '../components/ChatModal';
+import { RepeatIcon } from '@chakra-ui/icons';
 // import { ensClient } from '../web3/wallet';
 
 const SISMO_CONFIG = {
@@ -26,7 +27,7 @@ const Seller = () => {
   const { address } = useAccount();
   const { products, refreshProducts } = useProducts({ seller: address });
   const [isCreateModelOpen, setIsCreateModelOpen] = useState(false);
-  const [isDispatchModelOpen, setIsDispatchModelOpen] = useState(false);
+  const [isDispatchModalOpen, setIsDispatchModalOpen] = useState(false);
   const [dispatchingProduct, setDispatchingProduct] = useState<ZBayProduct>();
   const chainId = useChainId();
   const addRecentTransaction = useAddRecentTransaction();
@@ -65,7 +66,7 @@ const Seller = () => {
   };
 
   const onDispatch = (product: ZBayProduct) => {
-    setIsDispatchModelOpen(true);
+    setIsDispatchModalOpen(true);
     setDispatchingProduct(product);
   };
 
@@ -135,8 +136,9 @@ const Seller = () => {
       setIsDispatching(false);
     }
 
+    setIsDispatchModalOpen(false);
     return true;
-  }, [addRecentTransaction, dispatchProduct, publicClient, walletClient, refreshProducts]);
+  }, [addRecentTransaction, dispatchProduct, publicClient, walletClient, refreshProducts, setIsDispatchModalOpen]);
 
   const handleEbayReputation = useCallback(async () => {
     if (!address) {
@@ -240,6 +242,13 @@ const Seller = () => {
           My Products
         </Text>
         <Spacer />
+        <IconButton
+          aria-label="Reload products"
+          icon={<RepeatIcon />}
+          variant="ghost"
+          rounded="full"
+          onClick={refreshProducts}
+        />
         <Button rounded="xl" colorScheme="green" onClick={() => onCreate()}>
           Create
         </Button>
@@ -296,9 +305,9 @@ const Seller = () => {
       {
         dispatchingProduct && (
           <DispatchModal
-            isOpen={isDispatchModelOpen}
+            isOpen={isDispatchModalOpen}
             onDispatch={(product) => handleDispatch(product)}
-            onClose={() => setIsDispatchModelOpen(false)}
+            onClose={() => setIsDispatchModalOpen(false)}
             product={dispatchingProduct}
             isLoading={isDispatching}
             actionTitle="Dispatch"
@@ -310,7 +319,7 @@ const Seller = () => {
       {
         messagingWith && (
           <ChatModal
-            title={messagingWith.product.metadata.title.slice(0, 16) + '...'}
+            title={messagingWith.product.metadata.title.slice(0, 32) + '...'}
             companion={messagingWith.companion}
             isOpen={!!messagingWith}
             onClose={() => setMessagingWith(undefined)}

@@ -2,7 +2,7 @@ import '@rainbow-me/rainbowkit/styles.css';
 
 import { getDefaultWallets } from '@rainbow-me/rainbowkit';
 import { configureChains, createConfig, mainnet } from 'wagmi';
-import { polygonMumbai } from 'wagmi/chains';
+import { goerli, polygonMumbai } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
 import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { createPublicClient, http } from 'viem';
@@ -11,7 +11,7 @@ const WC_PROJECT_ID = import.meta.env.VITE_WC_PROJECT_ID ?? '';
 const ALCHEMY_KEY = import.meta.env.VITE_ALCHEMY_KEY ?? '';
 
 export const { chains, publicClient } = configureChains(
-  [polygonMumbai],
+  [polygonMumbai, goerli],
   [alchemyProvider({ apiKey: ALCHEMY_KEY }), publicProvider()],
 );
 

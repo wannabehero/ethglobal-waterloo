@@ -4,12 +4,14 @@ pragma solidity ^0.8.17;
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ERC2771Context, Context } from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { AncillaryData } from "@uma/core/contracts/common/implementation/AncillaryData.sol";
 import { OptimisticOracleV3Interface } from "./vendor/OptimisticOracleV3Interface.sol";
+import { OptimisticOracleV3CallbackRecipientInterface } from "./vendor/OptimisticOracleV3CallbackRecipientInterface.sol";
 
 import "./verifiers/IZBayVerifier.sol";
 import "./Structs.sol";
 
-contract ZBay is ERC2771Context, Ownable {
+contract ZBay is ERC2771Context, Ownable, OptimisticOracleV3CallbackRecipientInterface {
     error InvalidProof();
     error InvalidState();
     error NotImplemented();
@@ -56,8 +58,6 @@ contract ZBay is ERC2771Context, Ownable {
     {
         _disputeOracle = disputeOracle_;
         _token = token_;
-
-        _token.approve(address(_disputeOracle), MAX_INT);
     }
 
     /// @dev get product details
@@ -154,30 +154,38 @@ contract ZBay is ERC2771Context, Ownable {
         product.state = ZBayProductState.Dispatched;
         product.attestation = attestation;
 
-        // bytes memory assertedClaim = abi.encodePacked(
-        //     "Product was dispatched ",
-        //     product.id,
-        //     " with metadata at ",
-        //     product.cid,
-        //     " seller ",
-        //     product.seller,
-        //     " buyer ",
-        //     product.buyer,
-        //     " at price ",
-        //     product.price
-        // );
-        // product.assertionId = _disputeOracle.assertTruth(
-        //     assertedClaim,
-        //     _msgSender(),
-        //     address(this), // callback recipient
-        //     address(0), // escalation manager
-        //     30 days,
-        //     _token,
-        //     product.price / 2, // bond is 50% of the price
-        //     "ASSERT_TRUTH",
-        //     bytes32(0)
-        // );
-        // _assertionToProductId[product.assertionId] = product.id;
+        // some networks don't have uma oracles
+        if (address(_disputeOracle) != address(0)) {
+            bytes memory assertedClaim = abi.encodePacked(
+                "Product was dispatched 0x",
+                AncillaryData.toUtf8BytesUint(product.id),
+                " with metadata at ",
+                product.cid,
+                " seller 0x",
+                AncillaryData.toUtf8BytesAddress(product.seller),
+                " buyer ",
+                AncillaryData.toUtf8BytesAddress(product.buyer),
+                " for price 0x",
+                AncillaryData.toUtf8BytesUint(product.price)
+            );
+            IERC20 bondCurrency = _disputeOracle.defaultCurrency();
+            uint256 bondAmount = _disputeOracle.getMinimumBond(address(bondCurrency));
+            if (bondAmount > 0) {
+                bondCurrency.approve(address(_disputeOracle), bondAmount);
+            }
+            product.assertionId = _disputeOracle.assertTruth(
+                assertedClaim,
+                _msgSender(),
+                address(this), // callback recipient
+                address(0), // escalation manager
+                30 days,
+                bondCurrency,
+                bondAmount,
+                _disputeOracle.defaultIdentifier(),
+                bytes32(0)
+            );
+            _assertionToProductId[product.assertionId] = product.id;
+        }
 
         emit ProductDispatched(id);
     }
@@ -197,6 +205,10 @@ contract ZBay is ERC2771Context, Ownable {
         require(verified, "Invalid proof");
 
         _confirmDelivery(product);
+
+        // if (address(_disputeOracle) != address(0)) {
+        //     _disputeOracle.settleAssertion(product.assertionId);
+        // }
     }
 
     /// @dev Dispute delivery
@@ -207,13 +219,16 @@ contract ZBay is ERC2771Context, Ownable {
         require(product.state == ZBayProductState.Dispatched, "Invalid state");
 
         product.state = ZBayProductState.Disputed;
-        _disputeOracle.disputeAssertion(product.assertionId, _msgSender());
+
+        if (address(_disputeOracle) != address(0)) {
+            _disputeOracle.disputeAssertion(product.assertionId, _msgSender());
+        }
 
         emit ProductDisputed(id);
     }
 
     /// @dev UMA assertions callback
-    function assertionResolvedCallback(bytes32 assertionId, bool assertedTruthfully) public {
+    function assertionResolvedCallback(bytes32 assertionId, bool assertedTruthfully) external {
         require(msg.sender == address(_disputeOracle));
 
         uint256 productId = _assertionToProductId[assertionId];
@@ -229,6 +244,17 @@ contract ZBay is ERC2771Context, Ownable {
             _token.transfer(product.buyer, amountToUnLock);
             emit ProductResolved(productId, false);
         }
+    }
+
+    /// @dev UMA dispute callback
+    function assertionDisputedCallback(bytes32 assertionId) external {
+        require(msg.sender == address(_disputeOracle));
+        uint256 productId = _assertionToProductId[assertionId];
+        ZBayProduct storage product = _products[productId];
+
+        require(product.state == ZBayProductState.Dispatched, "Invalid state");
+        product.state = ZBayProductState.Disputed;
+        emit ProductDisputed(productId);
     }
 
     function _confirmDelivery(ZBayProduct storage product) internal {

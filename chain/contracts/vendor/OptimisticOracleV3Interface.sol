@@ -44,6 +44,8 @@ interface OptimisticOracleV3Interface {
      */
     function defaultIdentifier() external view returns (bytes32);
 
+    function defaultCurrency() external view returns (IERC20);
+
     /**
      * @notice Fetches information about a specific assertion and returns it.
      * @param assertionId unique identifier for the assertion to fetch information for.
