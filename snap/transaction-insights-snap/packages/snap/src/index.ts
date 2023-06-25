@@ -22,10 +22,19 @@ async function getSellerId(productId: string){
   return product.seller;
 }
 
+function yyyymmdd(dateStr: string): string {
+  const date = new Date(dateStr);
+  const mm = date.getMonth() + 1; // getMonth() is zero-based
+  const dd = date.getDate();
+
+  return [
+    date.getFullYear(),
+    (mm > 9 ? '' : '0') + mm,
+    (dd > 9 ? '' : '0') + dd,
+  ].join('-');
+}
+
 export const onTransaction: OnTransactionHandler = async ({ transaction }) => {
-
-
-  
 
   const decodedData = abiDecoder.decodeMethod(transaction.data);
   const productId = decodedData.params[0].value;
@@ -45,7 +54,7 @@ export const onTransaction: OnTransactionHandler = async ({ transaction }) => {
       text(
         `items sold: ${reputation.itemsSold}
         positive feedback: ${reputation.positiveFeedback}
-        member since: ${reputation.memberSinceDate}`,
+        member since: ${yyyymmdd(reputation.memberSinceDate)}`,
       ),
     ]),
   };

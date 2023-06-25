@@ -50,7 +50,7 @@ export class EbayService implements OnModuleDestroy {
     //save screenshot to file
     await page.screenshot({ path: 'response.png', fullPage: true });
 
-    await page.waitForSelector("[class='str-seller-card__stats-content']", { timeout: 10000 });
+    await page.waitForSelector("[class='str-seller-card__stats-content']", { timeout: 60000 });
 
     const element1 = await page.$("[class='str-seller-card__stats-content']");
     const merchantDataRaw = await page.evaluate((el) => el.textContent, element1);
