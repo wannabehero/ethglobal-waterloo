@@ -41,10 +41,8 @@ export class ProductService {
     return products;
   }
 
-
-  
-    async getProductById(productId: string) {
-        let query = gql`
+  async getProductById(productId: string) {
+    const query = gql`
         {
             productCreateds (where: {ZBay_id: "${productId}"}) {
                 ZBay_id
@@ -56,23 +54,22 @@ export class ProductService {
             }
         `;
 
-        const response = await clients[80001].query({ query, fetchPolicy: 'no-cache' });
+    const response = await clients[80001].query({ query, fetchPolicy: 'no-cache' });
 
-        const productData = response.data.productCreateds[0];
+    const productData = response.data.productCreateds[0];
 
-        console.log(productData);
+    console.log(productData);
 
-        const product: Product = {
-            id: productData.ZBay_id,
-            cid: productData.cid,
-            price: productData.price,
-            seller: productData.seller,
-            timestamp: productData.blockTimestamp,
-        };
+    const product: Product = {
+      id: productData.ZBay_id,
+      cid: productData.cid,
+      price: productData.price,
+      seller: productData.seller,
+      timestamp: productData.blockTimestamp,
+    };
 
-        return product;
-    }
-  
+    return product;
+  }
 
   async getAllProducts(chainId: number) {
     const products = await this.getProducts(null, chainId);
