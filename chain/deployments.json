@@ -1,0 +1,23 @@
+{
+    "80001": {
+        "MockToken": "0x9FBf4E70Aecfa43dd1B00dE828FDf68E903a6F25",
+        "ZBay": "0x1fd648a86f0d756fB6Ac09B6884a7bFEA25Ca835",
+        "ZBayAttestationVerifier": "0x4B8c871764627df55e17fcb5512Da09c09be0daE",
+        "ZBayReputationVerifier": "0x4f6A069256b9A1229E0c99ed1BF0f8a036d756aF",
+        "ZBaySismoVerifier": "0xd526BDbEBeeC7Cd315d696694362f6F13b109b84"
+    },
+    "100": {
+        "MockToken": "0x65953AfD9e051daeF24B6EBe64A2869965592AEc",
+        "ZBay": "0x0466F1A0D4892c2B1afAa2D86ac174E6dC62A47F",
+        "ZBayAttestationVerifier": "0x5B2d3ea941EBdE10e032C3deF43CEf952E6b2Ce9",
+        "ZBayReputationVerifier": "0x4170c53650f1ba19a94041c2943f44C71053E14D",
+        "ZBaySismoVerifier": "0x234fE2fc198E682bcdaf45be1F4E5034a3CaA9be"
+    },
+    "5": {
+        "MockToken": "0xd8770Db54Fe49B82Aa93c308284Ec40a43a3BD54",
+        "ZBay": "0x55A9De19bB5Cd8720A6C9d03d1Af086E54E2D944",
+        "ZBayAttestationVerifier": "0x2D3Adb7DA6e66166871c8aA37CA14A1452A85f27",
+        "ZBayReputationVerifier": "0xd3830D92a58398a55A39517035C1E221622d5CB9",
+        "ZBaySismoVerifier": "0xbe1Db7C207E98891976B66aF6418CB0AAe1730F8"
+    }
+}

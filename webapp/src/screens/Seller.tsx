@@ -1,4 +1,4 @@
-import { VStack, Text, HStack, Button, Spacer, IconButton } from '@chakra-ui/react';
+import { VStack, Text, HStack, Button, Spacer, IconButton, useToast } from '@chakra-ui/react';
 import useProducts from '../hooks/useProducts';
 import { useAccount, useChainId, usePublicClient, useWalletClient } from 'wagmi';
 import ProductCard from '../components/ProductCard';
@@ -24,6 +24,7 @@ const SISMO_CONFIG = {
 };
 
 const Seller = () => {
+  const toast = useToast();
   const { address } = useAccount();
   const { products, refreshProducts } = useProducts({ seller: address });
   const [isCreateModelOpen, setIsCreateModelOpen] = useState(false);
@@ -95,8 +96,18 @@ const Seller = () => {
       });
       await publicClient.waitForTransactionReceipt(tx);
       await refreshProducts();
-    } catch (e) {
-      console.error(e);
+      toast({
+        title: 'Created!',
+        description: "You've successfully created the product",
+        status: 'success',
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Create error',
+        description: err.message,
+        status: 'error',
+      });
+      console.error(err);
       return false;
     } finally {
       setIsCreating(false);
@@ -104,7 +115,7 @@ const Seller = () => {
 
     setIsCreateModelOpen(false);
     return true;
-  }, [createProduct, addRecentTransaction, setIsCreating, setIsCreateModelOpen, publicClient, walletClient, refreshProducts]);
+  }, [walletClient, createProduct, addRecentTransaction, toast, publicClient, refreshProducts]);
 
   const handleDispatch = useCallback(async (data: DispatchData) => {
     if (!walletClient) {
@@ -129,8 +140,18 @@ const Seller = () => {
       });
       await publicClient.waitForTransactionReceipt(tx);
       await refreshProducts();
-    } catch (e) {
-      console.error(e);
+      toast({
+        title: 'Dispathed!',
+        description: "You've successfully dispatched the product",
+        status: 'success',
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Dispatch error',
+        description: err.message,
+        status: 'error',
+      });
+      console.error(err);
       return false;
     } finally {
       setIsDispatching(false);
@@ -138,7 +159,7 @@ const Seller = () => {
 
     setIsDispatchModalOpen(false);
     return true;
-  }, [addRecentTransaction, dispatchProduct, publicClient, walletClient, refreshProducts, setIsDispatchModalOpen]);
+  }, [walletClient, dispatchProduct, addRecentTransaction, publicClient, refreshProducts, toast]);
 
   const handleEbayReputation = useCallback(async () => {
     if (!address) {
@@ -161,13 +182,23 @@ const Seller = () => {
       });
       await publicClient.waitForTransactionReceipt(tx);
       reloadScore();
-    } catch (e) {
-      console.error(e);
+      toast({
+        title: 'Verified!',
+        description: "You've successfully verified you eBay profile",
+        status: 'success',
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Verification error',
+        description: err.message,
+        status: 'error',
+      });
+      console.error(err);
     } finally {
       setIsLoadingEbayVerification(false);
     }
 
-  }, [address, submitVerification, reloadScore, addRecentTransaction, setIsLoadingEbayVerification, publicClient]);
+  }, [address, submitVerification, addRecentTransaction, publicClient, reloadScore, toast]);
 
   const onSismoConnect = () => {
     if (!address) {
@@ -200,14 +231,24 @@ const Seller = () => {
         });
         await publicClient.waitForTransactionReceipt(tx);
         reloadScore();
-      } catch (e) {
-        console.error(e);
+        toast({
+          title: 'Verified!',
+          description: "You've successfully verified you Gitcoin Passport",
+          status: 'success',
+        });
+      } catch (err: any) {
+        toast({
+          title: 'Verification error',
+          description: err.message,
+          status: 'error',
+        });
+        console.error(err);
       } finally {
         setIsLoadingSismoVerification(false);
       }
     };
     handleSismoReputation(sismoProof as Address);
-  }, [sismoProof, walletClient, submitVerification, addRecentTransaction, publicClient, reloadScore]);
+  }, [sismoProof, walletClient, submitVerification, addRecentTransaction, publicClient, reloadScore, toast]);
 
   return (
     <VStack spacing="4" align="stretch">

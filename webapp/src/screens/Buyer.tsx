@@ -1,4 +1,4 @@
-import { HStack, IconButton, Spacer, Text, VStack } from '@chakra-ui/react';
+import { HStack, IconButton, Spacer, Text, VStack, useToast } from '@chakra-ui/react';
 import useProducts from '../hooks/useProducts';
 import { useAccount, useChainId, usePublicClient } from 'wagmi';
 import ProductCard from '../components/ProductCard';
@@ -14,6 +14,7 @@ import ChatModal from '../components/ChatModal';
 import { RepeatIcon } from '@chakra-ui/icons';
 
 const Buyer = () => {
+  const toast = useToast();
   const { address } = useAccount();
   const { products, refreshProducts } = useProducts({ buyer: address });
   const [buyingProduct, setBuyingProduct] = useState<ZBayProduct>();
@@ -58,12 +59,22 @@ const Buyer = () => {
       });
       await publicClient.waitForTransactionReceipt(tx);
       await refreshProducts();
-    } catch (e) {
-      console.error(e);
+      toast({
+        title: 'Purchased!',
+        description: "You've successfully purchased the product",
+        status: 'success',
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Purchase error',
+        description: err.message,
+        status: 'error',
+      });
+      console.error(err);
     }
 
     setBuyingProduct(undefined);
-  }, [purchaseProduct, addRecentTransaction, publicClient, setBuyingProduct, refreshProducts, reputationCoef]);
+  }, [purchaseProduct, reputationCoef, addRecentTransaction, publicClient, refreshProducts, toast]);
 
   const handleConfirmDelivery = useCallback(async (data: DispatchData) => {
     console.log('Confirming delivery of', data.product.id);
@@ -85,8 +96,18 @@ const Buyer = () => {
       });
       await publicClient.waitForTransactionReceipt(tx);
       await refreshProducts();
-    } catch (e) {
-      console.error(e);
+      toast({
+        title: 'Confirmed!',
+        description: "You've successfully confirmed the delivery",
+        status: 'success',
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Confirm error',
+        description: err.message,
+        status: 'error',
+      });
+      console.error(err);
       return false;
     } finally {
       setIsConfirming(false);
@@ -94,7 +115,7 @@ const Buyer = () => {
 
     setIsConfirmModalOpen(false);
     return true;
-  }, [addRecentTransaction, confirmDelivery, publicClient, setIsConfirming, setIsConfirmModalOpen, refreshProducts]);
+  }, [confirmDelivery, addRecentTransaction, publicClient, refreshProducts, toast]);
 
   useEffect(() => {
     if (!address) {

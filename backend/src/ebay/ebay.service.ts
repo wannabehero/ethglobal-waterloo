@@ -65,13 +65,13 @@ export class EbayService implements OnModuleDestroy {
 
     const match1 = merchantDataRaw.match(/^(\d+%)\s/);
     const positiveFeedback = parseInt((match1 ? match1[1] : '0%').replace('%', ''));
-    
+
     const match2 = merchantDataRaw.match(/.*feedback(.*)\sItems/);
     const itemsSoldStr = match2 ? match2[1] : '0';
     let itemsSold = 0;
     if (itemsSoldStr.includes('K')) {
       itemsSold = parseFloat(itemsSoldStr.replace('K', '')) * 1000;
-    }else{
+    } else {
       itemsSold = parseInt(itemsSoldStr);
     }
 
