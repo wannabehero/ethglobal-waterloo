@@ -58,19 +58,26 @@ export class EbayService implements OnModuleDestroy {
     const element2 = await page.$("[class='str-about-description__seller-info']");
     const memberSinceRaw = await page.evaluate((el) => el.textContent, element2);
 
-    // 100% Positive feedback (4)7 Items sold1 Follower
+    // 100% Positive feedback3.3K Items sold278 Followers
     // 100% Positive feedback (1)
     console.log(merchantDataRaw);
     console.log(memberSinceRaw);
 
-    const match1 = merchantDataRaw.match(/(\d+%)(?:.*)feedback\s\(\d+\)\s?(.*)\sItems/);
+    const match1 = merchantDataRaw.match(/^(\d+%)\s/);
     const positiveFeedback = parseInt((match1 ? match1[1] : '0%').replace('%', ''));
-    const itemsSold = parseInt(match1 ? match1[2] : '0');
+    
+    const match2 = merchantDataRaw.match(/.*feedback(.*)\sItems/);
+    const itemsSoldStr = match2 ? match2[1] : '0';
+    let itemsSold = 0;
+    if (itemsSoldStr.includes('K')) {
+      itemsSold = parseFloat(itemsSoldStr.replace('K', '')) * 1000;
+    }else{
+      itemsSold = parseInt(itemsSoldStr);
+    }
 
-    const match2 = memberSinceRaw.match(/since:(.*\d)/);
-    const memberSinceDate = match2 ? new Date(match2[1]) : 'N/A';
+    const match3 = memberSinceRaw.match(/since:(.*\d)/);
+    const memberSinceDate = match3 ? new Date(match3[1]) : 'N/A';
     console.log(memberSinceDate);
-
     console.log(positiveFeedback);
     console.log(itemsSold);
 
