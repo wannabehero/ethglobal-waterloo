@@ -1,0 +1,69 @@
+type OwnershipTransferred @entity(immutable: true) {
+  id: Bytes!
+  previousOwner: Bytes! # address
+  newOwner: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ProductCancelled @entity(immutable: true) {
+  id: Bytes!
+  ZBay_id: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ProductCreated @entity(immutable: true) {
+  id: Bytes!
+  ZBay_id: BigInt! # uint256
+  seller: Bytes! # address
+  price: BigInt! # uint256
+  cid: Bytes! # bytes
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ProductDelivered @entity(immutable: true) {
+  id: Bytes!
+  ZBay_id: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ProductDispatched @entity(immutable: true) {
+  id: Bytes!
+  ZBay_id: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ProductDisputed @entity(immutable: true) {
+  id: Bytes!
+  ZBay_id: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ProductPurchased @entity(immutable: true) {
+  id: Bytes!
+  ZBay_id: BigInt! # uint256
+  buyer: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ProductResolved @entity(immutable: true) {
+  id: Bytes!
+  ZBay_id: BigInt! # uint256
+  successfully: Boolean! # bool
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}

@@ -1,0 +1,45 @@
+specVersion: 0.0.5
+schema:
+  file: schema.graphql
+dataSources:
+  - kind: ethereum
+    name: ZBay
+    network: gnosis
+    source:
+      address: "0x74F3FBae423654E21a8Af75022118060aA593Eff"
+      abi: ZBay
+      startBlock: 28625761
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - OwnershipTransferred
+        - ProductCancelled
+        - ProductCreated
+        - ProductDelivered
+        - ProductDispatched
+        - ProductDisputed
+        - ProductPurchased
+        - ProductResolved
+      abis:
+        - name: ZBay
+          file: ZBay/abis/ZBay.json
+      eventHandlers:
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: ProductCancelled(indexed uint256)
+          handler: handleProductCancelled
+        - event: ProductCreated(indexed uint256,indexed address,indexed uint256,bytes)
+          handler: handleProductCreated
+        - event: ProductDelivered(indexed uint256)
+          handler: handleProductDelivered
+        - event: ProductDispatched(indexed uint256)
+          handler: handleProductDispatched
+        - event: ProductDisputed(indexed uint256)
+          handler: handleProductDisputed
+        - event: ProductPurchased(indexed uint256,indexed address)
+          handler: handleProductPurchased
+        - event: ProductResolved(indexed uint256,indexed bool)
+          handler: handleProductResolved
+      file: ZBay/ZBay.wasm
