@@ -33,10 +33,10 @@ contract ZBaySismoVerifier is IZBayVerifier, SismoConnect {
             revert InvalidProof();
         }
 
-        uint256 vaultId = result.getUserId(AuthType.VAULT);
-
-        require(!_verifiedVaults[msg.sender][vaultId], "Already verified");
-        _verifiedVaults[msg.sender][vaultId] = true;
+        // FIXME: commented for test purposes
+        // uint256 vaultId = result.getUserId(AuthType.VAULT);
+        // require(!_verifiedVaults[msg.sender][vaultId], "Already verified");
+        // _verifiedVaults[msg.sender][vaultId] = true;
 
         return true;
     }

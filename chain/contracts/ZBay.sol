@@ -300,4 +300,12 @@ contract ZBay is ERC2771Context, Ownable, OptimisticOracleV3CallbackRecipientInt
             _verifierScores[verifiers[i]] = scores[i];
         }
     }
+
+    /// @dev used for demo only
+    function _resetScore(address account)
+        external
+        onlyOwner
+    {
+        _verificationScore[account] = 0;
+    }
 }
